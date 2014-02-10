@@ -1,0 +1,9 @@
+package no.hig.strand.lars.mtp;
+
+public final class DatabaseContract {
+
+	public DatabaseContract() {}
+	
+	
+	
+}

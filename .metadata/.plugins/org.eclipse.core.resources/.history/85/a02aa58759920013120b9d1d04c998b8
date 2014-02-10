@@ -1,0 +1,67 @@
+package no.hig.strand.lars.mtp;
+
+import no.hig.strand.lars.mtp.TasksContract.ContextEntry;
+import no.hig.strand.lars.mtp.TasksContract.ListEntry;
+import no.hig.strand.lars.mtp.TasksContract.TaskEntry;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class TasksDbHelper extends SQLiteOpenHelper {
+
+	private static final String INTEGER_TYPE = " INTEGER";
+	private static final String TEXT_TYPE = " TEXT";
+	private static final String COMMA_SEP = ", ";
+	
+	private static final String SQL_CREATE_LIST = 
+			"CREATE TABLE " + ListEntry.TABLE_NAME + " (" + 
+			ListEntry._ID + " INTEGER PRIMARY KEY" + COMMA_SEP +
+			ListEntry.COLUMN_NAME_DATE + TEXT_TYPE + ")";
+	private static final String SQL_DELETE_LIST =
+			"DROP TABLE IF EXISTS " + ListEntry.TABLE_NAME;
+	
+	private static final String SQL_CREATE_TASK =
+			"CREATE TABLE " + TaskEntry.TABLE_NAME + " (" +
+			TaskEntry._ID + " INTEGER PRIMARY KEY" + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_LIST + " INTEGER" + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_CATEGORY + TEXT_TYPE + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_LOCATION_LAT + TEXT_TYPE + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_LOCATION_LNG + TEXT_TYPE + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_IS_ACTIVE + " INTEGER" + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_TIME_START + TEXT_TYPE + COMMA_SEP +
+			TaskEntry.COLUMN_NAME_TIME_END + TEXT_TYPE + COMMA_SEP + 
+			TaskEntry.COLUMN_NAME_TIME_SPENT + " INTEGER)";
+	private static final String SQL_DELETE_TASK =
+			"DROP TABLE IF EXISTS " + TaskEntry.TABLE_NAME;
+	
+	private static final String SQL_CREATE_CONTEXT =
+			"CREATE TABLE " + ContextEntry.TABLE_NAME + " (" +
+			ContextEntry._ID + " INTEGER PRIMARY KEY" + COMMA_SEP +
+			ContextEntry.COLUMN_NAME_TASK + " INTEGER" + COMM
+	
+	
+	public static final int DATABASE_VERSION = 1;
+	public static final String DATABASE_NAME = "Tasks.db";
+	
+	
+	public TasksDbHelper(Context context) {
+		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+	}
+
+	
+	
+	@Override
+	public void onCreate(SQLiteDatabase db) {
+		
+	}
+
+	
+	
+	@Override
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		
+	}
+
+}

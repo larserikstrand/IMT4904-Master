@@ -1,0 +1,10 @@
+package no.hig.strand.lars.mtp;
+
+import android.content.Context;
+
+public class TasksDb {
+
+	public TasksDb(Context context) {
+		
+	}
+}

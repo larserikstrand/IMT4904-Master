@@ -1,0 +1,56 @@
+package no.hig.strand.lars.mtp;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+public class TasksDb {
+
+	TasksDbHelper mDbHelper;
+	SQLiteDatabase mDb;
+	
+	public TasksDb(Context context) {
+		mDbHelper = new TasksDbHelper(context);
+	}
+	
+	public void open() {
+		mDb = mDbHelper.getWritableDatabase();
+	}
+	
+	public void close() {
+		mDb.close();
+	}
+	
+	/*
+	 * Fetching queries
+	 */
+	public Cursor fetchLists() {
+		return null;
+	}
+	
+	
+	
+	public Cursor fetchListByDate(String date) {
+		return null;
+	}
+	
+	
+	
+	public Cursor fetchTasks() {
+		return null;
+	}
+	
+	
+	
+	public Cursor fetchTaskByList(int listId) {
+		return null;
+	}
+	
+	
+	
+	/*
+	 * Deletion queries
+	 */
+	
+	
+}
