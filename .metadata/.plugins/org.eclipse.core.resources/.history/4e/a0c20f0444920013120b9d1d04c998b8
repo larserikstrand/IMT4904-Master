@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Titles -->
+    <string name="app_name">MTP</string>
+    <string name="hello_world">Hello world!</string>
+    
+    <!-- Menu -->
+    <string name="action_settings">Settings</string>
+    
+    <!-- General -->
+    
+    <!-- Messages/Alerts -->
+
+</resources>
