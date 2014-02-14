@@ -1,0 +1,178 @@
+package no.hig.strand.lars.mtp;
+
+import java.util.ArrayList;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import no.hig.strand.lars.mtp.TasksContract.ListEntry;
+import no.hig.strand.lars.mtp.TasksContract.TaskEntry;
+import no.hig.strand.lars.mtp.TasksContract.TaskTimeEntry;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+public class TasksDb {
+
+	TasksDbHelper mDbHelper;
+	SQLiteDatabase mDb;
+	
+	public TasksDb(Context context) {
+		mDbHelper = new TasksDbHelper(context);
+	}
+	
+	public void open() {
+		mDb = mDbHelper.getWritableDatabase();
+	}
+	
+	public void close() {
+		mDb.close();
+	}
+	
+	/*
+	 * Fetching queries
+	 */
+	public Cursor fetchLists() {
+		return null;
+	}
+	
+	
+	
+	public Cursor fetchListByDate(String date) {
+		return null;
+	}
+	
+	
+	
+	public Cursor fetchTasks() {
+		return null;
+	}
+	
+	
+	
+	public ArrayList<Task> getTasksByDate(String date) {
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		
+		// Get the list with the specific date.
+		Cursor c = mDb.query(ListEntry.TABLE_NAME, 
+				new String[] {ListEntry._ID, ListEntry.COLUMN_NAME_DATE}, 
+				ListEntry.COLUMN_NAME_DATE + "=?", 
+				new String[] {date},
+				null, null, null);
+		
+		// If the list is found, get the tasks.
+		if (c.moveToFirst()) {
+			String listId = c.getString(
+					c.getColumnIndexOrThrow(ListEntry.COLUMN_NAME_DATE));
+			c = mDb.query(TaskEntry.TABLE_NAME, 
+					null, 
+					TaskEntry.COLUMN_NAME_LIST + "=?", 
+					new String[] {listId},
+					null, null, null);
+			
+			if (c.moveToFirst()) {
+				Task task = new Task();
+				// Loop through all the tasks belonging to the list.
+				do {
+					task.setCategory(c.getString(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_CATEGORY)));
+					task.setDescription(c.getString(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_DESCRIPTION)));
+					String latitude = c.getString(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_LOCATION_LAT));
+					String longitude = c.getString(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_LOCATION_LNG));
+					LatLng location = new LatLng(Double.valueOf(latitude), 
+							Double.valueOf(longitude));
+					task.setLocation(location);
+					task.setAddress(c.getString(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_ADDRESS)));
+					int isActive = c.getInt(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_IS_ACTIVE));
+					task.setActive(isActive > 0 ? true : false);
+					task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_TIME_SPENT)));
+					int isFinished = c.getInt(c.getColumnIndexOrThrow(
+							TaskEntry.COLUMN_NAME_IS_FINISHED));
+					task.setFinished(isFinished > 0 ? true : false);
+					
+					String taskId = c.getString(c.getColumnIndexOrThrow(
+							TaskEntry._ID));
+					Cursor cursor = mDb.query(TaskTimeEntry.TABLE_NAME, 
+							new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
+							TaskTimeEntry.COLUMN_NAME_END_TIME },
+							TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
+							new String[] {taskId},
+							null, null, null);
+					if (cursor.moveToFirst()) {
+						task.setFixedStart(cursor.getString(cursor
+								.getColumnIndexOrThrow(
+										TaskTimeEntry.COLUMN_NAME_START_TIME)));
+						task.setFixedEnd(cursor.getString(cursor
+								.getColumnIndexOrThrow(
+										TaskTimeEntry.COLUMN_NAME_END_TIME)));
+					}
+					
+					tasks.add(task);
+				} while (c.moveToNext());
+			}
+			
+		}
+		return null;
+	}
+	
+	
+	
+	/*
+	 * Deletion queries
+	 */
+	public boolean deleteListByDate(String date) {
+		return false;
+	}
+	
+	public boolean deleteTaskById(int taskId) {
+		return false;
+	}
+	
+	
+	
+	/*
+	 * Insertion queries
+	 */
+	public long insertList(String date) {
+		ContentValues values = new ContentValues();
+		values.put(ListEntry.COLUMN_NAME_DATE, date);
+		return mDb.insert(ListEntry.TABLE_NAME, null, values);
+	}
+	
+	
+	
+	public long insertTask(long listId, Task task) {
+		ContentValues values = new ContentValues();
+		values.put(TaskEntry.COLUMN_NAME_LIST, listId);
+		values.put(TaskEntry.COLUMN_NAME_CATEGORY, task.getCategory());
+		values.put(TaskEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
+		values.put(TaskEntry.COLUMN_NAME_LOCATION_LAT, 
+				task.getLocation().latitude);
+		values.put(TaskEntry.COLUMN_NAME_LOCATION_LNG, 
+				task.getLocation().longitude);
+		values.put(TaskEntry.COLUMN_NAME_ADDRESS, task.getAddress());
+		values.put(TaskEntry.COLUMN_NAME_IS_ACTIVE, task.isActive());
+		values.put(TaskEntry.COLUMN_NAME_TIME_START, task.getTimeStarted());
+		values.put(TaskEntry.COLUMN_NAME_TIME_END, task.getTimeEnded());
+		values.put(TaskEntry.COLUMN_NAME_TIME_SPENT, task.getTimeSpent());
+		values.put(TaskEntry.COLUMN_NAME_IS_FINISHED, task.isFinished());
+		long taskId = mDb.insert(TaskEntry.TABLE_NAME, null, values);
+		if (! task.getFixedStart().equals("")) {
+			values.clear();
+			values.put(TaskTimeEntry.COLUMN_NAME_TASK_ID, taskId);
+			values.put(TaskTimeEntry.COLUMN_NAME_START_TIME, 
+					task.getFixedStart());
+			values.put(TaskTimeEntry.COLUMN_NAME_END_TIME, task.getFixedEnd());
+			mDb.insert(TaskTimeEntry.TABLE_NAME, null, values);
+		}
+		
+		return taskId;
+	}
+	
+}

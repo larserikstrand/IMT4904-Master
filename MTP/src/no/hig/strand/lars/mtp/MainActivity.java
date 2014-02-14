@@ -3,7 +3,6 @@ package no.hig.strand.lars.mtp;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -18,6 +17,8 @@ public class MainActivity extends FragmentActivity {
 	private TabsPagerAdapter mTabsPagerAdapter;
 	private ViewPager mViewPager;
 	
+	public static final String TASKS_EXTRA = "no.hig.strand.lars.mtp.TASKS";
+	public static final String DATE_EXTRA  = "no.hig.strand.lars.mtp.DATE";
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +32,16 @@ public class MainActivity extends FragmentActivity {
         setupUI();
     }
 
-
+    
     
     @Override
+	protected void onResume() {
+		super.onResume();
+	}
+    
+    
+    
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -43,9 +51,6 @@ public class MainActivity extends FragmentActivity {
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
-		case R.id.action_new_list:
-			startActivity(new Intent(this, ListActivity.class));
-			return true;
 		case R.id.action_settings:
 			return true;
 		case R.id.action_about:

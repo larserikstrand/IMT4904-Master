@@ -1,36 +1,52 @@
 package no.hig.strand.lars.mtp;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.app.Activity;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
-public class MapActivity extends Activity {
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+public class MapActivity extends FragmentActivity {
+
+	private GoogleMap mMap;
+	private LatLng mLocation;
+	private MarkerOptions mMarkerOptions;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_map);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		mMap = ((SupportMapFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.map)).getMap();
+		mLocation = null;
+		mMarkerOptions = new MarkerOptions();
+		
+		setupUI();
 	}
 
+	
+	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
 	private void setupActionBar() {
-
 		getActionBar().setDisplayHomeAsUpEnabled(true);
-
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.map, menu);
-		return true;
-	}
+	
+		
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -47,6 +63,35 @@ public class MapActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	
+	
+	private void setupUI() {
+		mMap.setMyLocationEnabled(true);
+		
+		mMap.setOnMapClickListener(new OnMapClickListener() {
+			@Override
+			public void onMapClick(LatLng latLng) {
+				mMap.clear();
+				mLocation = latLng;
+				mMarkerOptions.position(mLocation);
+				mMap.addMarker(mMarkerOptions);
+			}
+		});
+		
+		Button button = (Button) findViewById(R.id.done_button);
+		button.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (mLocation != null) {
+					Intent data = new Intent();
+					data.putExtra(NewTaskActivity.LOCATION_EXTRA, mLocation);
+					setResult(RESULT_OK, data);
+				}
+				finish();
+			}
+		});
 	}
 
 }

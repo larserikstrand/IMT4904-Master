@@ -1,7 +1,0 @@
-package no.hig.strand.lars.mtp;
-
-import android.support.v4.app.Fragment;
-
-public class TodayFragment extends Fragment {
-
-}

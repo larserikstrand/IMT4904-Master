@@ -1,0 +1,67 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ListActivity" >
+
+    <Button android:id="@+id/date_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:text="@string/set_date" />
+    
+    <View android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:background="@android:color/darker_gray" />
+    
+    <ListView android:id="@+id/tasklist_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+    	android:paddingRight="@dimen/activity_horizontal_margin" />
+
+    <View android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:background="@android:color/darker_gray" />
+    
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+        
+        <Button android:id="@+id/new_task_button"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:background="?android:attr/selectableItemBackground"
+        	android:text="@string/new_task"
+        	android:textAppearance="?android:attr/textAppearanceSmall"
+        	android:drawableTop="@drawable/ic_content_new" />
+        
+        <ImageButton android:id="@+id/save_button"
+            android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:background="?android:attr/selectableItemBackground"
+        	android:text="@string/save"
+        	android:textAppearance="?android:attr/textAppearanceSmall"
+        	android:drawableTop="@drawable/ic_content_save" />
+        
+        <ImageButton android:id="@+id/discard_button"
+            android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:background="?android:attr/selectableItemBackground"
+        	android:src="@drawable/ic_content_discard"
+        	android:contentDescription="@string/discard_list" />
+        
+    </LinearLayout>
+    
+</LinearLayout>

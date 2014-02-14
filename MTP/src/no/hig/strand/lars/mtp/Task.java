@@ -10,20 +10,50 @@ public class Task implements Parcelable {
 	private String mCategory;
 	private String mDescription;
 	private LatLng mLocation;
+	private String mAddress;
+	// Whether or not the task is currently in progress
 	private boolean mIsActive;
-	private String mStartTime;
-	private String mEndTime;
+	// Actual times for the task
+	private String mTimeStarted;
+	private String mTimeEnded;
 	private int mTimeSpent;
+	// Whether or not the task is finished (i.e. should sometimes not be displayed).
+	private boolean mIsFinished;
+	
+	// Variables for tasks with fixed start and end times.
+	private String mFixedStart;
+	private String mFixedEnd;
+	
+	public Task() {
+		mCategory = "";
+		mDescription = "";
+		mLocation = null;
+		mAddress = "";
+		mIsActive = false;
+		mTimeStarted = "";
+		mTimeEnded = "";
+		mTimeSpent = 0;
+		mIsFinished = false;
+		
+		mFixedStart = "";
+		mFixedEnd = "";
+	}
+	
 	
 	
 	public Task(String category, String description, LatLng location) {
 		mCategory = category;
 		mDescription = description;
 		mLocation = location;
+		mAddress = "";
 		mIsActive = false;
-		mStartTime = "";
-		mEndTime = "";
+		mTimeStarted = "";
+		mTimeEnded = "";
 		mTimeSpent = 0;
+		mIsFinished = false;
+		
+		mFixedStart = "";
+		mFixedEnd = "";
 	}
 	
 	
@@ -46,10 +76,13 @@ public class Task implements Parcelable {
 		dest.writeString(mCategory);
 		dest.writeString(mDescription);
 		dest.writeParcelable(mLocation, flags);
+		dest.writeString(mAddress);
 		dest.writeInt((int) (mIsActive ? 1 : 0));
-		dest.writeString(mStartTime);
-		dest.writeString(mEndTime);
+		dest.writeString(mTimeStarted);
+		dest.writeString(mTimeEnded);
 		dest.writeInt(mTimeSpent);
+		dest.writeString(mFixedStart);
+		dest.writeString(mFixedEnd);
 	}
 	
 	
@@ -57,11 +90,14 @@ public class Task implements Parcelable {
 	private void readFromParcel(Parcel in) {
 		mCategory = in.readString();
 		mDescription = in.readString();
-		mLocation = in.readParcelable(null);
+		mLocation = in.readParcelable(LatLng.class.getClassLoader());
+		mAddress = in.readString();
 		mIsActive = in.readInt() != 0;
-		mStartTime = in.readString();
-		mEndTime = in.readString();
+		mTimeStarted = in.readString();
+		mTimeEnded = in.readString();
 		mTimeSpent = in.readInt();
+		mFixedStart = in.readString();
+		mFixedEnd = in.readString();
 	}
 	
 	
@@ -88,6 +124,12 @@ public class Task implements Parcelable {
 		return mCategory;
 	}
 
+
+	
+	public void setCategory(String category) {
+		mCategory = category;
+	}
+	
 	
 	
 	public String getDescription() {
@@ -96,10 +138,34 @@ public class Task implements Parcelable {
 
 	
 	
+	public void setDescription(String description) {
+		mDescription = description;
+	}
+	
+	
+	
 	public LatLng getLocation() {
 		return mLocation;
 	}
 
+	
+	
+	public void setLocation(LatLng location) {
+		mLocation = location;
+	}
+	
+	
+	
+	public String getAddress() {
+		return mAddress;
+	}
+	
+	
+	
+	public void setAddress(String address) {
+		mAddress = address;
+	}
+	
 	
 	
 	public boolean isActive() {
@@ -108,20 +174,86 @@ public class Task implements Parcelable {
 
 	
 	
-	public String getStartTime() {
-		return mStartTime;
+	public void setActive(boolean isActive) {
+		mIsActive = isActive;
+	}
+	
+	
+	
+	public String getTimeStarted() {
+		return mTimeStarted;
 	}
 
 	
 	
-	public String getEndTime() {
-		return mEndTime;
+	public void setTimeStarted(String timeStarted) {
+		mTimeStarted = timeStarted;
+	}
+	
+	
+	
+	public String getTimeEnded() {
+		return mTimeEnded;
 	}
 
+	
+	
+	public void setTimeEnded(String timeEnded) {
+		mTimeEnded = timeEnded;
+	}
+	
 	
 	
 	public int getTimeSpent() {
 		return mTimeSpent;
+	}
+	
+	
+	
+	public void setTimeSpent(int timeSpent) {
+		mTimeSpent = timeSpent;
+	}
+	
+	
+	
+	public void updateTimeSpent(int time) {
+		mTimeSpent += time;
+	}
+	
+	
+	
+	public boolean isFinished() {
+		return mIsFinished;
+	}
+	
+	
+	
+	public void setFinished(boolean isFinished) {
+		mIsFinished = isFinished;
+	}
+	
+	
+	
+	public String getFixedStart() {
+		return mFixedStart;
+	}
+	
+	
+	
+	public void setFixedStart(String fixedStart) {
+		mFixedStart = fixedStart;
+	}
+	
+	
+	
+	public String getFixedEnd() {
+		return mFixedEnd;
+	}
+	
+	
+	
+	public void setFixedEnd(String fixedEnd) {
+		mFixedEnd = fixedEnd;
 	}
 
 }

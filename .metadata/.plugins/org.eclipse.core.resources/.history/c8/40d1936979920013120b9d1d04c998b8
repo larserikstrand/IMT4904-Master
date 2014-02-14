@@ -1,7 +1,0 @@
-package no.hig.strand.lars.mtp;
-
-import android.os.Parcelable;
-
-public class Task implements Parcelable {
-
-}

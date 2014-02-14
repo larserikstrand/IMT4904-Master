@@ -1,0 +1,14 @@
+package no.hig.strand.lars.mtp;
+
+public final class Utilities {
+
+	public Utilities() {}
+	
+	
+	public static void getAddress() {}
+	
+	
+	public static ArrayList<String> autocomplete(String input) {
+		ArrayList<String> resultList = null;
+	}
+}

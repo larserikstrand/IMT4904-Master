@@ -1,0 +1,19 @@
+package no.hig.strand.lars.mtp;
+
+
+public final class Utilities {
+
+	private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
+	private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
+	private static final String OUT_JSON = "/json";
+	
+	private static final String API_KEY = "YOUR_API_KEY";
+	
+	
+	public Utilities() {}
+	
+	
+	public static void getAddress() {}
+	
+	
+}
