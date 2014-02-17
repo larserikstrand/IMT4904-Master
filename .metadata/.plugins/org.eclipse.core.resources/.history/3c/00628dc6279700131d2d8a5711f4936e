@@ -1,0 +1,22 @@
+package no.hig.strand.lars.mtp;
+
+import android.os.Bundle;
+import android.preference.PreferenceActivity;
+
+@SuppressWarnings("deprecation")
+public class SettingsActivity extends PreferenceActivity {
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		addPreferencesFromResource(R.xml.preferences);
+		
+		setupUI();
+	}
+	
+	
+	
+	private void setupUI() {
+		
+	}
+}

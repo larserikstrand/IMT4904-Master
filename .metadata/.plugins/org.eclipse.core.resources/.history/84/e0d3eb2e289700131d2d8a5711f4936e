@@ -1,0 +1,27 @@
+package no.hig.strand.lars.mtp;
+
+import android.os.Bundle;
+import android.preference.ListPreference;
+import android.preference.PreferenceActivity;
+
+@SuppressWarnings("deprecation")
+public class SettingsActivity extends PreferenceActivity {
+
+	public static final String PREF_OCCUPATION_KEY = "pref_occupation";
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		addPreferencesFromResource(R.xml.preferences);
+		
+		setupUI();
+	}
+	
+	
+	
+	private void setupUI() {
+		ListPreference pref = (ListPreference) findPreference(
+				PREF_OCCUPATION_KEY);
+		pref.setSummary(pref.getEntry());
+	}
+}

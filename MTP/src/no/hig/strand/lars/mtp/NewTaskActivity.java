@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -33,6 +34,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -92,6 +94,16 @@ public class NewTaskActivity extends FragmentActivity {
 	
 	
 	private void setupUI() {
+		LinearLayout container = (LinearLayout) findViewById(R.id.container);
+		container.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (mLocationText.isFocused()) {
+					mLocationText.clearFocus();
+				}
+			}
+		});
+		
 		// Set up the auto complete text view with listeners.
 		mLocationText = (AutoCompleteTextView) 
 				findViewById(R.id.location_text);
@@ -106,7 +118,11 @@ public class NewTaskActivity extends FragmentActivity {
 						.getItemAtPosition(position);
 				mLocationText.setText(location);
 				mTask.setAddress(location);
-				new GetLocationCoordinates().execute(location);
+				new GetLocationCoordinatesFromName().execute(location);
+				InputMethodManager imm = (InputMethodManager) 
+						getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+						InputMethodManager.HIDE_NOT_ALWAYS);
 			}
 		});
 		mLocationText.setAdapter(mAutoCompleteAdapter);
@@ -118,6 +134,12 @@ public class NewTaskActivity extends FragmentActivity {
 			public void onClick(View v) {
 				Intent intent = new Intent(
 						NewTaskActivity.this, MapActivity.class);
+				LatLng location = new LatLng(0, 0);
+				if (mTask.getLocation() != null && 
+						! (mTask.getLocation() == location)) {
+					intent.putExtra(LOCATION_EXTRA, mTask.getLocation());
+				}
+				intent.putExtra(LOCATION_EXTRA, mTask.getLocation());
 				startActivityForResult(intent, MAP_REQUEST);
 			}
 		});
@@ -190,9 +212,15 @@ public class NewTaskActivity extends FragmentActivity {
 	
 	
 	private void saveTask() {
+		// Get location in the event that the user did not click an item
+		//  on the auto complete adapter (If this is the case, 
+		//  GetLocationcoordinatesFromName is never called and the task won't
+		//  have GPS coordinates. This might need to be fixed). 
+		if (! mLocationText.getText().toString().equals("")) {
+			mTask.setAddress(mLocationText.getText().toString());
+		}
 		// Check if a location is chosen.
-		if (mTask.getLocation() != null) {
-			
+		if (mTask.getLocation() != null || ! mTask.getAddress().isEmpty()) {
 			// Location is chosen, check if a category is chosen.
 			Spinner spinner = (Spinner) findViewById(R.id.category_spinner);
 			String category = spinner.getSelectedItem().toString();
@@ -256,6 +284,7 @@ public class NewTaskActivity extends FragmentActivity {
 			if (resultCode == RESULT_OK) {
 				LatLng location = data.getParcelableExtra(LOCATION_EXTRA);
 				mTask.setLocation(location);
+				new GetLocationCoordinatesFromValue().execute(location);
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
@@ -263,19 +292,60 @@ public class NewTaskActivity extends FragmentActivity {
 	
 	
 	
+	private class GetLocationCoordinatesFromValue 
+			extends AsyncTask<LatLng, Void, String> {
+
+		@Override
+		protected String doInBackground(LatLng... params) {
+			LatLng location = params[0];
+			try {
+				List<Address> addresses = new Geocoder(getBaseContext())
+				.getFromLocation(location.latitude, location.longitude, 1);
+				Address address = addresses.get(0);
+				if (addresses.size() > 0) {
+					String value = "";
+					for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+						value += address.getAddressLine(i);
+						if (i < address.getMaxAddressLineIndex() -1) {
+							value += ", ";
+						}
+					}
+					return value;
+				}
+			} catch (IOException e) {
+				Log.d("MTP", "Could not get GeoCoder");
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			if (result != null) {
+				mTask.setAddress(result);
+				mLocationText.setText(result);
+				Button button = (Button) findViewById(R.id.location_button);
+				// Just move the focus away from the editable text
+				button.requestFocus();
+			}
+		}
+		
+	}
 	
-	private class GetLocationCoordinates extends AsyncTask<String, Void, LatLng> {
+	
+	
+	private class GetLocationCoordinatesFromName 
+			extends AsyncTask<String, Void, LatLng> {
 		
 		@Override
 		protected LatLng doInBackground(String... params) {
 			String value = params[0];
 			try {
-				List<Address> addresses = new Geocoder(getBaseContext()).getFromLocationName(value, 1);
+				List<Address> addresses = new Geocoder(getBaseContext())
+						.getFromLocationName(value, 1);
 				if (addresses.size() > 0) {
 					return new LatLng(addresses.get(0).getLatitude(),
 							addresses.get(0).getLongitude());
 				}
-				
 			} catch (IOException e) {
 				Log.d("MTP", "Could not get GeoCoder");
 			}
@@ -284,7 +354,9 @@ public class NewTaskActivity extends FragmentActivity {
 
 		@Override
 		protected void onPostExecute(LatLng result) {
-			mTask.setLocation(result);
+			if (result != null) {
+				mTask.setLocation(result);
+			}
 		}
 		
 	}

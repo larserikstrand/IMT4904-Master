@@ -3,7 +3,10 @@ package no.hig.strand.lars.mtp;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -24,6 +27,8 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         
         mTabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -48,12 +53,15 @@ public class MainActivity extends FragmentActivity {
     }
     
     
+	
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
 		case R.id.action_settings:
+			startActivity(new Intent(this, SettingsActivity.class));
 			return true;
 		case R.id.action_about:
+			startActivity(new Intent(this, AboutActivity.class));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -95,6 +103,25 @@ public class MainActivity extends FragmentActivity {
 		
     }
     
+	
+	
+	public class DeleteListFromDatabase extends AsyncTask<String, Void, Void> {
+		TasksDb tasksDb;
+
+		@Override
+		protected Void doInBackground(String... params) {
+			TasksDb tasksDb;
+			tasksDb = new TasksDb(getApplicationContext());
+			tasksDb.open();
+			
+			tasksDb.deleteListByDate(params[0]);
+			tasksDb.close();
+			
+			return null;
+		}
+		
+	}
+	
     
     
     public class TabsPagerAdapter extends FragmentStatePagerAdapter {

@@ -28,10 +28,17 @@ public class MapActivity extends FragmentActivity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		Intent data = getIntent();
+		
 		mMap = ((SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map)).getMap();
 		mLocation = null;
 		mMarkerOptions = new MarkerOptions();
+		if (data.hasExtra(NewTaskActivity.LOCATION_EXTRA)) {
+			mLocation = data.getParcelableExtra(NewTaskActivity.LOCATION_EXTRA);
+			mMarkerOptions.position(mLocation);
+		}
+		
 		
 		setupUI();
 	}
@@ -69,6 +76,10 @@ public class MapActivity extends FragmentActivity {
 	
 	private void setupUI() {
 		mMap.setMyLocationEnabled(true);
+		
+		if (mLocation != null) {
+			mMap.addMarker(mMarkerOptions);
+		}
 		
 		mMap.setOnMapClickListener(new OnMapClickListener() {
 			@Override

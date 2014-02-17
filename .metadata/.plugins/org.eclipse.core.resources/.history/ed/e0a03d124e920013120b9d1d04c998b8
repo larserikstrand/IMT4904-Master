@@ -1,7 +1,0 @@
-package no.hig.strand.lars.mtp;
-
-public final class Utilities {
-
-	public final Utilities() {}
-	
-}

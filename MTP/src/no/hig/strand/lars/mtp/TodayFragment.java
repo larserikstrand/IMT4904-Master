@@ -29,7 +29,8 @@ public class TodayFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.fragment_today, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_today, 
+				container, false);
 		
 		mRootView = rootView;
 		mTasks = new ArrayList<Task>();
@@ -89,11 +90,28 @@ public class TodayFragment extends Fragment {
 						new Utilities.ConfirmDialogListener() {
 					@Override
 					public void PositiveClick(DialogInterface dialog, int id) {
-						// TODO delete list... async task
+						String date = Utilities.getDate();
+						if (getActivity() instanceof MainActivity) {
+							MainActivity activity = 
+									(MainActivity) getActivity();
+							activity.new DeleteListFromDatabase().execute(date);
+						}
 					}
 				});
 			}
 		});
+	}
+	
+	
+	
+	private void startTask() {
+		
+	}
+	
+	
+	
+	private void pauseTask() {
+		
 	}
 	
 	
@@ -152,16 +170,17 @@ public class TodayFragment extends Fragment {
 			button.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					// TODO start or pause task...
 					String text = ((Button) v).getText().toString();
 					LinearLayout layout = (LinearLayout) v.getParent();
 					if (text.equals(getString(R.string.start))) {
 						((Button) v).setText(getString(R.string.pause));
 						layout.setBackgroundColor(getResources()
 								.getColor(R.color.lightgreen));
+						startTask();
 					} else {
 						((Button) v).setText(getString(R.string.start));
 						layout.setBackgroundResource(0);
+						pauseTask();
 					}
 				}
 			});

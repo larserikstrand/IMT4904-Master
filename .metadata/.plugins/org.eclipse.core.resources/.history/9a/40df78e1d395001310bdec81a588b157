@@ -1,0 +1,14 @@
+package no.hig.strand.lars.mtp;
+
+import android.os.Bundle;
+import android.preference.PreferenceFragment;
+
+public class SettingsActivity extends PreferenceFragment {
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		addPreferencesFromResource(R.xml.preferences);
+	}
+	
+}
