@@ -17,20 +17,25 @@ import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.util.Log;
 
 
 public class Utilities {
 	
 	private static final String LOG_TAG = "MTP.NewTaskActivity";
-	private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
+	private static final String PLACES_API_BASE =
+			"https://maps.googleapis.com/maps/api/place";
 	private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
 	private static final String OUT_JSON = "/json";
 	
-	private static final String API_KEY = "AIzaSyA_g26RsnbZMv7bOZLl9DUvEWKaMiZfdN0";
+	private static final String API_KEY = 
+			"AIzaSyA_g26RsnbZMv7bOZLl9DUvEWKaMiZfdN0";
 	
 	
 	public Utilities() {}
@@ -42,7 +47,8 @@ public class Utilities {
 	    HttpURLConnection conn = null;
 	    StringBuilder jsonResults = new StringBuilder();
 	    try {
-	        StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
+	        StringBuilder sb = new StringBuilder(
+	        		PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
 	        sb.append("?sensor=false&key=" + API_KEY);
 	        sb.append("&input=" + URLEncoder.encode(input, "utf8"));
 
@@ -76,7 +82,8 @@ public class Utilities {
 	        // Extract the Place descriptions from the results
 	        resultList = new ArrayList<String>(predsJsonArray.length());
 	        for (int i = 0; i < predsJsonArray.length(); i++) {
-	            resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
+	            resultList.add(predsJsonArray
+	            		.getJSONObject(i).getString("description"));
 	        }
 	    } catch (JSONException e) {
 	        Log.e(LOG_TAG, "Cannot process JSON results", e);
@@ -122,6 +129,32 @@ public class Utilities {
 		
 		AlertDialog dialog = builder.create();
 		dialog.show();
+	}
+	
+	
+	
+	public static class ErrorDialogFragment extends DialogFragment {
+		private Dialog mDialog;
+		
+		
+		public ErrorDialogFragment() {
+			super();
+			mDialog = null;
+		}
+		
+		
+		
+		public void setDialog(Dialog dialog) {
+			mDialog = dialog;
+		}
+
+
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			return mDialog;
+		}
+		
 	}
 	
 }

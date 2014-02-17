@@ -56,6 +56,10 @@
     <string name="no_tasks_message">You haven\'t entered any tasks to save.</string>
     <string name="existing_list_message">A list with this date already exist. Do you wish to add tasks to the existing list or delete the existing list?</string>
     <string name="about_message">MTP is developed as a Master thesis project at Gjøvik University College. It\'s purpose is not only to keep track of your tasks but also to gather contextual information as you do the tasks in order to give you future task recommendations.</string>
+    
+    <!-- Service -->
+    <string name="service_notification_title">MTP Context Service:</string>
+    <string name="service_notification_message">Collecting contexts</string>
 
     <!-- Preferences -->
     <string name="pref_context_storage">Context Storage</string>

@@ -1,0 +1,7 @@
+package no.hig.strand.lars.mtp.services;
+
+import android.app.IntentService;
+
+public class ActivityRecognitionIntentService extends IntentService {
+
+}

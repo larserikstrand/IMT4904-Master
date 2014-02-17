@@ -1,27 +1,43 @@
 package no.hig.strand.lars.mtp;
 
+import no.hig.strand.lars.mtp.Utilities.ErrorDialogFragment;
+import no.hig.strand.lars.mtp.services.ContextService;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
+import android.app.Dialog;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
 public class MainActivity extends FragmentActivity {
 
 	private TabsPagerAdapter mTabsPagerAdapter;
 	private ViewPager mViewPager;
 	
+	public static int mActiveTasks = 0;
+	
+	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+	
 	public static final String TASKS_EXTRA = "no.hig.strand.lars.mtp.TASKS";
 	public static final String DATE_EXTRA  = "no.hig.strand.lars.mtp.DATE";
+	public static final String RECEIVER_EXTRA = 
+			"no.hig.strand.lars.mtp.RECEIVER";
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +136,75 @@ public class MainActivity extends FragmentActivity {
 			return null;
 		}
 		
+	}
+	
+	
+	
+	public void startTask() {
+		mActiveTasks += 1;
+		final ContextServiceResultReceiver resultReceiver = 
+				new ContextServiceResultReceiver(null);
+		final Intent intent = new Intent(this, ContextService.class);
+		intent.putExtra(RECEIVER_EXTRA, resultReceiver);
+		startService(intent);
+	}
+	
+	
+	
+	public void pauseTask() {
+		final Intent intent = new Intent(this, ContextService.class);
+		stopService(intent);
+	}
+	
+	
+	
+	private boolean isServicesConnected() {
+		int resultCode = GooglePlayServicesUtil
+				.isGooglePlayServicesAvailable(this);
+		if (resultCode == ConnectionResult.SUCCESS) {
+			Log.d("MTP MainActivity", "Google Play Services is available");
+			return true;
+		} else {
+			Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
+					resultCode, this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+			if (errorDialog != null) {
+				ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+				errorFragment.setDialog(errorDialog);
+				errorFragment.show(getSupportFragmentManager(),
+						"Location Updates");
+			}
+			return false;
+		}
+	}
+	
+	
+	
+	@Override
+	protected void onActivityResult(
+			int requestCode, int resultCode, Intent data) {
+		if (requestCode == CONNECTION_FAILURE_RESOLUTION_REQUEST) {
+			if (resultCode == RESULT_OK) {
+				
+			}
+		}
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+
+
+	public class ContextServiceResultReceiver extends ResultReceiver {
+
+		public ContextServiceResultReceiver(Handler handler) {
+			super(handler);
+		}
+
+		@Override
+		protected void onReceiveResult(int resultCode, Bundle resultData) {
+			if (resultCode == 100) {
+				String address = resultData.getString("address");
+				Toast.makeText(MainActivity.this, address, Toast.LENGTH_SHORT).show();
+			}
+		}
 	}
 	
     
