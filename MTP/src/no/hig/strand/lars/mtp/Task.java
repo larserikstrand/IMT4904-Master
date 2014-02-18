@@ -7,6 +7,7 @@ import android.os.Parcelable;
 
 public class Task implements Parcelable {
 
+	private int mId;
 	private String mCategory;
 	private String mDescription;
 	private LatLng mLocation;
@@ -25,6 +26,7 @@ public class Task implements Parcelable {
 	private String mFixedEnd;
 	
 	public Task() {
+		mId = 0;
 		mCategory = "";
 		mDescription = "";
 		mLocation = new LatLng(0, 0);
@@ -42,6 +44,7 @@ public class Task implements Parcelable {
 	
 	
 	public Task(String category, String description, LatLng location) {
+		mId = 0;
 		mCategory = category;
 		mDescription = description;
 		mLocation = location;
@@ -117,6 +120,18 @@ public class Task implements Parcelable {
 		
 		
 	};
+	
+	
+	
+	public int getId() {
+		return mId;
+	}
+	
+	
+	
+	public void setId(int id) {
+		mId = id;
+	}
 	
 	
 	

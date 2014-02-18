@@ -5,17 +5,18 @@ import java.util.List;
 
 import no.hig.strand.lars.mtp.MainActivity;
 import no.hig.strand.lars.mtp.R;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.ResultReceiver;
+import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -24,100 +25,128 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
-public class ContextService extends IntentService implements
+public class ContextService extends Service implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener,
 		LocationListener {
 
-	ResultReceiver resultReceiver;
 	LocationClient locationClient;
 	LocationRequest locationRequest;
-	PendingIntent activityRecognitionIntent;
+	PendingIntent activityRecognitionPendingIntent;
 	ActivityRecognitionClient activityRecognitionClient;
+	boolean locationInProgress;
+	boolean activityInProgress;
+	
+	private static final long LOCATION_UPDATE_INTERVAL = 1000*10;
+	private static final long FASTEST_LOCATION_INTERVAL = 1000*5;
+	private static final long ACTIVITY_DETECTION_INTERVAL = 1000*1;
 
-	
-	private static final int NOTIFICATION_ID = 1984;
-	
-	private static final int ACTIVITY_DETECTION_INTERVAL = 1000*10;
-	
-	
-	public ContextService() {
-		super("ContextService");
-	}
-
+	public static final int NOTIFICATION_ID = 4723;
 	
 	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		setIntentRedelivery(true);
 		
+		// Instantiating the location client
 		locationClient = new LocationClient(this, this, this);
-		locationClient.connect();
 		locationRequest = LocationRequest.create();
-		locationRequest.setPriority(
-				LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		locationRequest.setInterval(LOCATION_UPDATE_INTERVAL);
+		locationRequest.setFastestInterval(FASTEST_LOCATION_INTERVAL);
 		
+		// Instantiating the activity recognition client.
 		activityRecognitionClient = 
 				new ActivityRecognitionClient(this, this, this);
 		Intent intent = new Intent(this, ActivityRecognitionIntentService.class);
-		activityRecognitionIntent = PendingIntent.getService(
+		activityRecognitionPendingIntent = PendingIntent.getService(
 				this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		activityRecognitionClient.connect();
+		locationInProgress = false;
+		activityInProgress = false;
 		
-		// ActivityRecognition should be handled here.. Shouldn't need its own service...
+		// TODO ActivityRecognition should be handled here.. Shouldn't need its own service...
 	}
 
 
 
 	@Override
 	public void onDestroy() {
-		locationClient.disconnect();
+		locationInProgress = false;
+		activityInProgress = false;
+		
+		if (locationClient != null) {
+			locationClient.removeLocationUpdates(this);
+			locationClient = null;
+		}
+		if (activityRecognitionClient != null) {
+			activityRecognitionClient.removeActivityUpdates(
+					activityRecognitionPendingIntent);
+			activityRecognitionClient = null;
+		}
+		
 		super.onDestroy();
 	}
-
+	
 
 
 	@Override
-	protected void onHandleIntent(Intent intent) {
-		resultReceiver = intent.getParcelableExtra(MainActivity.RECEIVER_EXTRA);
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		super.onStartCommand(intent, flags, startId);
 		
 		startServiceInForeground();
 		
-		final int SLEEP_TIME = 5000;
+		setupClientsIfNeeded();
 		
-        while (true) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-
-                // TODO Do something useful...
-                
-  
-            } catch (InterruptedException e) {
-                // this should never happen
-                e.printStackTrace();
-            }
-        }
+		if (! locationClient.isConnected() ||
+				locationClient.isConnecting() &&
+				! locationInProgress) {
+			locationInProgress = true;
+			locationClient.connect();
+		}
+		
+		if (! activityRecognitionClient.isConnected() ||
+				! activityRecognitionClient.isConnecting() && 
+				! activityInProgress) {
+			activityInProgress = true;
+			activityRecognitionClient.connect();
+		}
+		
+		return START_REDELIVER_INTENT;
 	}
-	
-	
+
+
 	
 	private void startServiceInForeground() {
-		final Intent intent = new Intent(this, MainActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
-				Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);
-		final Notification note = new NotificationCompat.Builder(this)
-				.setContentTitle(getString(R.string.service_notification_title))
-				.setContentText(getString(R.string.service_notification_message))
-				.setSmallIcon(android.R.drawable.ic_popup_sync)
-				.setContentIntent(pending)
-				.build();
-		note.flags |= Notification.FLAG_NO_CLEAR;
-		startForeground(NOTIFICATION_ID, note);
+		Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | 
+        		Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
+        
+        final Notification note = new NotificationCompat.Builder(this)
+                .setContentTitle(getString(R.string.service_notification_title))
+                .setContentText(
+                		getString(R.string.service_notification_message))
+                .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .setContentIntent(pi)
+                .build();
+        note.flags |= Notification.FLAG_NO_CLEAR;
+        
+        startForeground(NOTIFICATION_ID, note);
 	}
-
-
+	
+	
+	
+	private void setupClientsIfNeeded() {
+		if (locationClient == null) {
+			locationClient = new LocationClient(this, this, this);
+		}
+		if (activityRecognitionClient == null) {
+			activityRecognitionClient = 
+					new ActivityRecognitionClient(this, this, this);
+		}
+	}
+	
+	
 
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {}
@@ -126,17 +155,25 @@ public class ContextService extends IntentService implements
 
 	@Override
 	public void onConnected(Bundle dataBundle) {
-		locationClient.requestLocationUpdates(locationRequest, this);
-		
-		activityRecognitionClient.requestActivityUpdates(
-				ACTIVITY_DETECTION_INTERVAL, activityRecognitionIntent);
-		activityRecognitionClient.disconnect();
+		if (locationClient.isConnected()) {
+			locationClient.requestLocationUpdates(locationRequest, this);
+		}
+		if (activityRecognitionClient.isConnected()) {
+			activityRecognitionClient.requestActivityUpdates(
+					ACTIVITY_DETECTION_INTERVAL,
+					activityRecognitionPendingIntent);
+		}
 	}
 
 
 
 	@Override
-	public void onDisconnected() {}
+	public void onDisconnected() {
+		locationInProgress = false;
+		locationClient = null;
+		activityInProgress = false;
+		activityRecognitionClient = null;
+	}
 
 
 
@@ -168,10 +205,15 @@ public class ContextService extends IntentService implements
 				}
 			}
 			
-			Bundle bundle = new Bundle();
-			bundle.putString("address", addressText);
-			resultReceiver.send(100, bundle);
+			Toast.makeText(this, addressText, Toast.LENGTH_SHORT).show();
 		}
+	}
+
+
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
 	}
 
 }

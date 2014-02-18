@@ -1,22 +1,26 @@
 package no.hig.strand.lars.mtp.services;
 
+import android.app.IntentService;
+import android.content.Intent;
+import android.os.ResultReceiver;
+import android.util.Log;
+
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
-import android.app.IntentService;
-import android.content.Intent;
-
 public class ActivityRecognitionIntentService extends IntentService {
-
 	
-	public ActivityRecognitionIntentService(String name) {
-		super(name);
+	ResultReceiver resultReceiver;
+	
+	public ActivityRecognitionIntentService() {
+		super("ActivityRecognitionService");
 	}
 
 	
 	
 	@Override
 	protected void onHandleIntent(Intent intent) {
+		
 		if (ActivityRecognitionResult.hasResult(intent)) {
 			ActivityRecognitionResult result = 
 					ActivityRecognitionResult.extractResult(intent);
@@ -24,8 +28,11 @@ public class ActivityRecognitionIntentService extends IntentService {
 			DetectedActivity mostProbableActivity = 
 					result.getMostProbableActivity();
 			int confidence = mostProbableActivity.getConfidence();
+			Log.d("ACTIVITYRECOGNITIONINTENTSERVICE", Integer.toString(confidence));
 			int activityType = mostProbableActivity.getType();
 			String activityName = getNameFromType(activityType);
+			
+			Log.d("ACTIVITYRECOGNITIONSERVICE", "ACTIVITY " + activityName);
 		}
 	}
 	

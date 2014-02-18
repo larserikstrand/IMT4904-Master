@@ -2159,3 +2159,6 @@ Binding(CTRL+SHIFT+ARROW_DOWN,
 		,,true),null),
 	org.eclipse.ui.defaultAcceleratorConfiguration,
 	org.eclipse.wst.sse.ui.structuredTextEditorScope,,,system)
+
+!ENTRY org.eclipse.php.debug.core 4 4 2014-02-18 10:34:16.593
+!MESSAGE The debug port 10000 is in use. Please select a different port for the debugger.

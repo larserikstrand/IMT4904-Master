@@ -9,8 +9,6 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,7 +18,6 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -141,24 +138,25 @@ public class MainActivity extends FragmentActivity {
 	
 	
 	public void startTask() {
-		mActiveTasks += 1;
-		final ContextServiceResultReceiver resultReceiver = 
-				new ContextServiceResultReceiver(null);
-		final Intent intent = new Intent(this, ContextService.class);
-		intent.putExtra(RECEIVER_EXTRA, resultReceiver);
-		startService(intent);
+		if (isServicesAvailable()) {
+			mActiveTasks += 1;
+			Intent intent = new Intent(this, ContextService.class);
+			startService(intent);
+		}
+		
 	}
 	
 	
 	
 	public void pauseTask() {
-		final Intent intent = new Intent(this, ContextService.class);
+		mActiveTasks -= 1;
+		Intent intent = new Intent(this, ContextService.class);
 		stopService(intent);
 	}
 	
 	
 	
-	private boolean isServicesConnected() {
+	private boolean isServicesAvailable() {
 		int resultCode = GooglePlayServicesUtil
 				.isGooglePlayServicesAvailable(this);
 		if (resultCode == ConnectionResult.SUCCESS) {
@@ -188,23 +186,6 @@ public class MainActivity extends FragmentActivity {
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
-	}
-
-
-
-	public class ContextServiceResultReceiver extends ResultReceiver {
-
-		public ContextServiceResultReceiver(Handler handler) {
-			super(handler);
-		}
-
-		@Override
-		protected void onReceiveResult(int resultCode, Bundle resultData) {
-			if (resultCode == 100) {
-				String address = resultData.getString("address");
-				Toast.makeText(MainActivity.this, address, Toast.LENGTH_SHORT).show();
-			}
-		}
 	}
 	
     

@@ -147,6 +147,42 @@ public class TodayFragment extends Fragment {
 	
 	
 	
+	private class SetTaskActiveStatus extends AsyncTask<Task, Void, Void> {
+		private TasksDb tasksDb;
+
+		@Override
+		protected Void doInBackground(Task... params) {
+			Task task = params[0];
+			
+			tasksDb = new TasksDb(getActivity());
+			tasksDb.open();
+			tasksDb.updateTaskActiveStatus(task.getId(), task.isActive());
+			tasksDb.close();
+			
+			return null;
+		}
+	}
+	
+	
+	
+	private class SetTaskFinishedStatus extends AsyncTask<Task, Void, Void> {
+		private TasksDb tasksDb;
+
+		@Override
+		protected Void doInBackground(Task... params) {
+			Task task = params[0];
+			
+			tasksDb = new TasksDb(getActivity());
+			tasksDb.open();
+			tasksDb.updateTaskActiveStatus(task.getId(), task.isFinished());
+			tasksDb.close();
+			
+			return null;
+		}
+	}
+	
+	
+	
 	private class TodayListAdapter extends ArrayAdapter<Task> {
 		private final Context context;
 		private final ArrayList<Task> tasks;
@@ -171,19 +207,37 @@ public class TodayFragment extends Fragment {
 					.findViewById(R.id.location_text);
 			locationText.setText(tasks.get(position).getAddress());
 			
-			Button button = (Button) rowView.
+			
+			Button startPauseButton = (Button) rowView.
 					findViewById(R.id.start_pause_button);
-			button.setOnClickListener(new OnClickListener() {
+			if (tasks.get(position).isActive()) {
+				rowView.setBackgroundColor(getResources()
+						.getColor(R.color.lightgreen));
+				startPauseButton.setText(getString(R.string.pause));
+			}
+			startPauseButton.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					String text = ((Button) v).getText().toString();
 					LinearLayout layout = (LinearLayout) v.getParent();
+					ListView listView = (ListView) layout.getParent();
+					int position = -1;
+					for (int i = 0; i < listView.getChildCount(); i++) {
+						LinearLayout ll = (LinearLayout) listView.getChildAt(i);
+						if (layout.equals(ll)) {
+							position = i;
+						}
+					}
+					String text = ((Button) v).getText().toString();
 					if (text.equals(getString(R.string.start))) {
+						mTasks.get(position).setActive(true);
+						new SetTaskActiveStatus().execute(mTasks.get(position));
 						((Button) v).setText(getString(R.string.pause));
 						layout.setBackgroundColor(getResources()
 								.getColor(R.color.lightgreen));
 						startTask();
 					} else {
+						mTasks.get(position).setActive(false);
+						new SetTaskActiveStatus().execute(mTasks.get(position));
 						((Button) v).setText(getString(R.string.start));
 						layout.setBackgroundResource(0);
 						pauseTask();
@@ -191,8 +245,10 @@ public class TodayFragment extends Fragment {
 				}
 			});
 			
-			button = (Button) rowView.findViewById(R.id.finished_button);
-			button.setOnClickListener(new OnClickListener() {
+			
+			Button finishButton = (Button) rowView
+					.findViewById(R.id.finished_button);
+			finishButton.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					// TODO finish task...
@@ -221,6 +277,15 @@ public class TodayFragment extends Fragment {
 					button.setEnabled(false);
 				}
 			});
+			
+			if (tasks.get(position).isFinished()) {
+				taskText.setPaintFlags(taskText.getPaintFlags() 
+						| Paint.STRIKE_THRU_TEXT_FLAG);
+				locationText.setPaintFlags(locationText.getPaintFlags() 
+						| Paint.STRIKE_THRU_TEXT_FLAG);
+				startPauseButton.setEnabled(false);
+				finishButton.setEnabled(false);
+			}
 			
 			return rowView;
 		}

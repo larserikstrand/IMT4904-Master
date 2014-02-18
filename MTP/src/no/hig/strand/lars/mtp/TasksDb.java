@@ -82,6 +82,8 @@ public class TasksDb {
 				// Loop through all the tasks belonging to the list.
 				do {
 					task = new Task();
+					task.setId(c1.getInt(c1.getColumnIndexOrThrow(
+							TaskEntry._ID)));
 					task.setCategory(c1.getString(c1.getColumnIndexOrThrow(
 							TaskEntry.COLUMN_NAME_CATEGORY)));
 					task.setDescription(c1.getString(c1.getColumnIndexOrThrow(
@@ -197,6 +199,30 @@ public class TasksDb {
 		}
 		
 		return taskId;
+	}
+	
+	
+	
+	public boolean updateTaskActiveStatus(int id, boolean active) {
+		ContentValues values = new ContentValues();
+		values.put(TaskEntry.COLUMN_NAME_IS_ACTIVE, (active ? 1 : 0));
+		int result = mDb.update(TaskEntry.TABLE_NAME, values,
+				TaskEntry._ID + " = ?", 
+				new String[] { Integer.toString(id) });
+		
+		return result > 0 ? true : false;
+	}
+	
+	
+	
+	public boolean updateTaskFinishedStatus(int id, boolean finished) {
+		ContentValues values = new ContentValues();
+		values.put(TaskEntry.COLUMN_NAME_IS_FINISHED, (finished ? 1 : 0));
+		int result = mDb.update(TaskEntry.TABLE_NAME, values,
+				TaskEntry._ID + " = ?", 
+				new String[] { Integer.toString(id) });
+		
+		return result > 0 ? true : false;
 	}
 	
 }
