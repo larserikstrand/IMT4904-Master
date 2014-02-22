@@ -1,0 +1,13 @@
+package no.hig.strand.lars.mtp;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+import com.google.appengine.api.datastore.Key;
+
+@Entity
+public class TaskEntity {
+	@Id
+	private Key key;
+
+}

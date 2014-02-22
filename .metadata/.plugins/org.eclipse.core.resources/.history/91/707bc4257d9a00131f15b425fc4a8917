@@ -1,0 +1,29 @@
+package no.hig.strand.lars.mtp;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.google.appengine.api.datastore.Key;
+
+@Entity
+public class TaskEntity {
+	@Id
+	private Key key;
+	
+	private String category;
+	private String description;
+	private double latitude;
+	private double longitude;
+	private String address;
+	private boolean isActive;
+	private String timeStarted;
+	private String timeEnded;
+	private int timeSpent;
+	private boolean isFinished;
+	
+	private String fixedStart;
+	private String fixedEnd;
+	
+	
+}

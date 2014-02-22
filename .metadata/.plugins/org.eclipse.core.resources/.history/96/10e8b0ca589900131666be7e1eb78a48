@@ -1,0 +1,13 @@
+package no.hig.strand.lars.mtp;
+
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+import com.google.appengine.api.datastore.Key;
+
+public class CheckIn {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Key key;
+
+}

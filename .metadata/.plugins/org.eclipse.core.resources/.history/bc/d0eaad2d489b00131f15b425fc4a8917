@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:orientation="horizontal" >
+    
+    <LinearLayout android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackground"
+        android:orientation="vertical" >
+        
+        <TextView android:id="@+id/task_text"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+        
+        <TextView android:id="@+id/location_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@android:color/darker_gray" />
+        
+    </LinearLayout>
+    
+    <Button android:id="@+id/start_pause_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginRight="5dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:text="@string/start" />
+    
+    <Button android:id="@+id/finished_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="?android:attr/selectableItemBackground"
+        android:text="@string/finished" />
+
+</LinearLayout>
