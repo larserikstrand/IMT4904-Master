@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;no.hig.strand.lars.todoity.MainActivity.UpdateFragment&apos; to &apos;UpdatableFragment&apos;&#x0D;&#x0A;- Original project: &apos;Todoity&apos;&#x0D;&#x0A;- Original element: &apos;no.hig.strand.lars.todoity.MainActivity.UpdateFragment&apos;&#x0D;&#x0A;- Renamed element: &apos;no.hig.strand.lars.todoity.MainActivity.UpdatableFragment&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;UpdateFragment&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;no.hig.strand.lars.todoity{MainActivity.java[MainActivity[UpdateFragment" matchStrategy="1" name="UpdatableFragment" qualified="false" references="true" similarDeclarations="false" stamp="1393597972143" textual="false" version="1.0"/>
+</session>

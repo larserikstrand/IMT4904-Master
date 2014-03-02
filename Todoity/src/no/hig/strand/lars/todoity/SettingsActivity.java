@@ -31,7 +31,7 @@ public class SettingsActivity extends PreferenceActivity {
 			public boolean onPreferenceChange(Preference preference,
 					Object newValue) {
 				preference.setSummary(newValue.toString());
-				return false;
+				return true;
 			}
 		});
 	}

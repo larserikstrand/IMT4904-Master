@@ -1,25 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.Utilities"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.MainActivity.DeleteListFromDatabase"/>
-<fullyQualifiedTypeName name="android.content.SharedPreferences.OnSharedPreferenceChangeListener"/>
-<fullyQualifiedTypeName name="android.preference.Preference.OnPreferenceChangeListener"/>
-<fullyQualifiedTypeName name="android.hardware.input.InputManager"/>
-<fullyQualifiedTypeName name="android.view.inputmethod.InputMethodManager"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.NewTaskActivity.GetLocationCoordinates"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.NewTaskActivity.GetLocationCoordinatesFromName"/>
-<fullyQualifiedTypeName name="android.view.View.OnFocusChangeListener"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.NewTaskActivity"/>
-<fullyQualifiedTypeName name="android.view.View.OnClickListener"/>
-<fullyQualifiedTypeName name="com.google.android.gms.maps.model.LatLng"/>
-<fullyQualifiedTypeName name="android.content.Intent"/>
-<fullyQualifiedTypeName name="android.app.Notification"/>
-<fullyQualifiedTypeName name="android.support.v4.app.NotificationCompat"/>
-<fullyQualifiedTypeName name="android.support.v4.app.NotificationCompat.Builder"/>
-<fullyQualifiedTypeName name="android.R.drawable"/>
-<fullyQualifiedTypeName name="android.R"/>
-<fullyQualifiedTypeName name="android.R.string"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.MainActivity.ContextServiceResultReceiver"/>
 <fullyQualifiedTypeName name="android.os.ResultReceiver"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.mtp.MainActivity"/>
 <fullyQualifiedTypeName name="java.lang.Runnable"/>
@@ -50,7 +30,6 @@
 <fullyQualifiedTypeName name="android.app.IntentService"/>
 <fullyQualifiedTypeName name="android.util.Log"/>
 <fullyQualifiedTypeName name="android.webkit.WebView.FindListener"/>
-<fullyQualifiedTypeName name="android.os.AsyncTask"/>
 <fullyQualifiedTypeName name="android.content.ContentValues"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.mtp.TasksContract.TaskEntry"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.mtp.TodayFragment.SetTaskActiveStatus"/>
@@ -60,4 +39,25 @@
 <fullyQualifiedTypeName name="android.widget.Toast"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.mtp.R"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.mtp.R.string"/>
+<fullyQualifiedTypeName name="android.os.AsyncTask"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.Task"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.Taskentityendpoint.Builder"/>
+<fullyQualifiedTypeName name="com.google.api.client.extensions.android.http.AndroidHttp"/>
+<fullyQualifiedTypeName name="com.google.api.client.json.jackson.JacksonFactory"/>
+<fullyQualifiedTypeName name="com.google.api.client.http.HttpRequestInitializer"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.Taskentityendpoint"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.CloudEndpointUtils"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.model.TaskEntity"/>
+<fullyQualifiedTypeName name="javax.persistence.Entity"/>
+<fullyQualifiedTypeName name="javax.persistence.Id"/>
+<fullyQualifiedTypeName name="com.google.appengine.api.datastore.Key"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TodayFragment.SaveToExternal"/>
+<fullyQualifiedTypeName name="javax.persistence.GeneratedValue"/>
+<fullyQualifiedTypeName name="javax.persistence.GenerationType"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.taskentityendpoint.model.TaskEntity"/>
+<fullyQualifiedTypeName name="android.view.MenuInflater"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.R.menu"/>
+<fullyQualifiedTypeName name="android.widget.CheckBox"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.R.id"/>
+<fullyQualifiedTypeName name="android.widget.CompoundButton.OnCheckedChangeListener"/>
 </qualifiedTypeNameHistroy>

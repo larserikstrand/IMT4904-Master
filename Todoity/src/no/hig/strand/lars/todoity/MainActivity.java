@@ -1,24 +1,45 @@
 package no.hig.strand.lars.todoity;
 
-import no.hig.strand.lars.todoity.R;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+import no.hig.strand.lars.todoity.TasksContract.ListEntry;
 import no.hig.strand.lars.todoity.Utilities.ErrorDialogFragment;
 import no.hig.strand.lars.todoity.services.ContextService;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.DatePicker;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -38,12 +59,33 @@ public class MainActivity extends FragmentActivity {
 	public static final String RECEIVER_EXTRA = 
 			"no.hig.strand.lars.mtp.RECEIVER";
 	
+	
+	
+	public interface OnDeletionCallback {
+		public void onDeletionDone();
+	}
+	
+	public interface OnTaskMovedCallback {
+		public void onTaskMoved();
+	}
+	
+	
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences sharedPref = PreferenceManager
+        		.getDefaultSharedPreferences(this);
+        String occupationPref = sharedPref.getString(
+        		SettingsActivity.PREF_OCCUPATION_KEY,
+        		getString(R.string.pref_occupation_default));
+        if (occupationPref.equals(getString(
+        		R.string.pref_occupation_default))) {
+        	showWelcomeDialog();
+        }
         
         mTabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
@@ -84,6 +126,43 @@ public class MainActivity extends FragmentActivity {
 	}
 
 
+    
+    private void showWelcomeDialog() {
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	LayoutInflater inflater = getLayoutInflater();
+    	View view = inflater.inflate(R.layout.dialog_welcome, null);
+    	ListView list = (ListView) view.findViewById(R.id.occupation_list);
+    	
+    	builder.setTitle(getString(R.string.welcome));
+    	builder.setView(view);
+    	final AlertDialog dialog = builder.create();
+    	// To make sure the user selects an occupation and to not override the
+    	//  back button.
+    	dialog.setCanceledOnTouchOutside(false);
+    	dialog.setOnCancelListener(new OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				finish();
+			}
+		});
+    	
+    	list.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, 
+					int position, long id) {
+				SharedPreferences sharedPref = PreferenceManager
+		        		.getDefaultSharedPreferences(MainActivity.this);
+		        Editor editor = sharedPref.edit();
+		        editor.putString(SettingsActivity.PREF_OCCUPATION_KEY, 
+		        		((TextView)view).getText().toString());
+		        editor.commit();
+				dialog.dismiss();
+			}
+		});
+    	dialog.show();
+    }
+    
+    
 
 	private void setupUI() {
     	final ActionBar actionBar = getActionBar();
@@ -91,7 +170,9 @@ public class MainActivity extends FragmentActivity {
     	
     	ActionBar.TabListener tabListener = new ActionBar.TabListener() {
 			@Override
-			public void onTabUnselected(Tab tab, FragmentTransaction ft) {}
+			public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+				
+			}
 			
 			@Override
 			public void onTabSelected(Tab tab, FragmentTransaction ft) {
@@ -121,21 +202,10 @@ public class MainActivity extends FragmentActivity {
 	
 	
 	
-	public class DeleteListFromDatabase extends AsyncTask<String, Void, Void> {
-		TasksDb tasksDb;
-
-		@Override
-		protected Void doInBackground(String... params) {
-			TasksDb tasksDb;
-			tasksDb = new TasksDb(getApplicationContext());
-			tasksDb.open();
-			
-			tasksDb.deleteListByDate(params[0]);
-			tasksDb.close();
-			
-			return null;
-		}
-		
+	public Fragment getActiveFragment(int position) {
+		return getSupportFragmentManager()
+				.findFragmentByTag(
+				"android:switcher:" + R.id.pager + ":" + position);
 	}
 	
 	
@@ -163,7 +233,7 @@ public class MainActivity extends FragmentActivity {
 		int resultCode = GooglePlayServicesUtil
 				.isGooglePlayServicesAvailable(this);
 		if (resultCode == ConnectionResult.SUCCESS) {
-			Log.d("MTP MainActivity", "Google Play Services is available");
+			Log.d("Todoity MainActivity", "Google Play Services is available");
 			return true;
 		} else {
 			Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
@@ -191,7 +261,118 @@ public class MainActivity extends FragmentActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 	
+	
+	
+	public static class DeleteListFromDatabase 
+			extends AsyncTask<String, Void, Void> {
+		private OnDeletionCallback callback;
+		private TasksDb tasksDb;
+		private Context context;
+
+		public DeleteListFromDatabase(Context context, 
+				OnDeletionCallback callback) {
+			this.context = context;
+			this.callback = callback;
+		}
+		
+		@Override
+		protected Void doInBackground(String... params) {
+			tasksDb = new TasksDb(context);
+			tasksDb.open();
+			tasksDb.deleteListByDate(params[0]);
+			tasksDb.close();
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			callback.onDeletionDone();
+		}
+		
+	}
+	
+	
+	
+	public static class DeleteTaskFromDatabase 
+			extends AsyncTask<Integer, Void, Void> {	
+		private OnDeletionCallback callback;
+		private TasksDb tasksDb;
+		private Context context;
+
+		public DeleteTaskFromDatabase(Context context, 
+				OnDeletionCallback callback) {
+			this.context = context;
+			this.callback = callback;
+		}
+		
+		@Override
+		protected Void doInBackground(Integer... params) {
+			int taskId = params[0];
+			
+			tasksDb = new TasksDb(context);
+			tasksDb.open();
+			tasksDb.deleteTaskById(taskId);
+			tasksDb.close();
+			
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			callback.onDeletionDone();
+		}
+	}
+	
     
+	
+	public static class MoveTaskToDate extends AsyncTask<Void, Void, Void> {
+		private OnTaskMovedCallback callback;
+		private TasksDb tasksDb;
+		private Context context;
+		private Task task;
+		private String date;
+
+		public MoveTaskToDate(Context context, Task task, String date, 
+				OnTaskMovedCallback callback) {
+			this.context = context;
+			this.callback = callback;
+			this.task = task;
+			this.date = date;
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {			
+			tasksDb = new TasksDb(context);
+			tasksDb.open();
+			
+			// Move the task to the selected date. 
+			//  Create list on that date if none exist.
+			long listId = -1;
+			Cursor c = tasksDb.fetchListByDate(date);
+			if (c.moveToFirst()) {
+				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
+			} else {
+				listId = tasksDb.insertList(date);
+			}
+			
+			// Remove old task and insert new one.
+			tasksDb.deleteTaskById(task.getId());
+			tasksDb.insertTask(listId, task);
+			
+			tasksDb.close();
+			
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			callback.onTaskMoved();
+		}
+		
+	}
+	
+	
     
     public class TabsPagerAdapter extends FragmentStatePagerAdapter {
 
@@ -200,8 +381,8 @@ public class MainActivity extends FragmentActivity {
 			super(fm);
 		}
 
-		
-		
+
+
 		@Override
 		public Fragment getItem(int i) {
 			switch (i) {
@@ -221,5 +402,43 @@ public class MainActivity extends FragmentActivity {
     	
     }
     
+    
+    
+    public static class DatePickerFragment extends DialogFragment 
+			implements DatePickerDialog.OnDateSetListener {
+
+    	@Override
+    	public Dialog onCreateDialog(Bundle savedInstanceState) {
+    		final Calendar c = Calendar.getInstance();
+    		int year = c.get(Calendar.YEAR);
+    		int month = c.get(Calendar.MONTH);
+    		int day = c.get(Calendar.DAY_OF_MONTH);
+    		
+    		DatePickerDialog dpd = new DatePickerDialog(getActivity(), 
+    				this, year, month, day);
+    		dpd.getDatePicker().setMinDate(c.getTimeInMillis());
+
+    		return dpd;
+    	}
+
+    	@SuppressLint("SimpleDateFormat")
+    	@Override
+    	public void onDateSet(DatePicker view, int year, int monthOfYear,
+    			int dayOfMonth) {
+    		SimpleDateFormat formatter = 
+    				new SimpleDateFormat("EEEE, MMM dd, yyyy");
+    		Calendar c = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+    		String date = formatter.format(c.getTime());
+    		
+    		Fragment fragment = getTargetFragment();
+    		if (fragment instanceof TodayFragment) {
+    			((TodayFragment)fragment).onDateSet(date);
+    		} else if (fragment instanceof WeekFragment) {
+    			((WeekFragment)fragment).onDateSet(date);
+    		} else {
+    			((AllTasksFragment)fragment).onDateSet(date);
+    		}
+    	}
+    }
     
 }

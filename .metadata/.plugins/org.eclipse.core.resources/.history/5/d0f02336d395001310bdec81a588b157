@@ -1,7 +1,0 @@
-package no.hig.strand.lars.mtp;
-
-import android.preference.PreferenceFragment;
-
-public class SettingsActivity extends PreferenceFragment {
-
-}

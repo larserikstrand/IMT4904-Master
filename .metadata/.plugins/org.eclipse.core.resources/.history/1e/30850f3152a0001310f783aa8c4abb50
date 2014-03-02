@@ -1,0 +1,11 @@
+package no.hig.strand.lars.todoity;
+
+
+/**
+ * Class for holding common Google App Engine calls.
+ * @author LarsErik
+ *
+ */
+public final class AppEngineUtilities {
+	
+}

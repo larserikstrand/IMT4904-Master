@@ -2,12 +2,18 @@ package no.hig.strand.lars.todoity;
 
 import java.util.ArrayList;
 
+import no.hig.strand.lars.todoity.MainActivity.DeleteListFromDatabase;
+import no.hig.strand.lars.todoity.MainActivity.DeleteTaskFromDatabase;
+import no.hig.strand.lars.todoity.MainActivity.MoveTaskToDate;
+import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
+import no.hig.strand.lars.todoity.MainActivity.OnTaskMovedCallback;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -32,7 +38,7 @@ public class TodayFragment extends Fragment {
 	private View mRootView;
 	private ArrayList<Task> mTasks;
 	private TodayListAdapter mAdapter;
-	private String mDate;
+	private int mSelectedTask;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,25 +51,29 @@ public class TodayFragment extends Fragment {
 		mAdapter = new TodayListAdapter(getActivity(), mTasks);
 		
 		setupUI();
-        
+		new LoadTasksFromDatabase().execute();
+		
 		return rootView;
 	}
 	
 	
 	
+	// Workaround for getting tasks from database when fragment enters view.
 	@Override
-	public void onResume() {
-		mDate = Utilities.getDate();
-		new LoadTasksFromDatabase().execute(mDate);
-		super.onResume();
+	public void setUserVisibleHint(boolean isVisibleToUser) {
+		super.setUserVisibleHint(isVisibleToUser);
+		if (isVisibleToUser) {
+			new LoadTasksFromDatabase().execute();
+		}
 	}
-	
+
 	
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
+		mSelectedTask = (Integer) v.getTag();
 		MenuInflater inflater = getActivity().getMenuInflater();
 		inflater.inflate(R.menu.context_menu_task, menu);
 	}
@@ -72,9 +82,26 @@ public class TodayFragment extends Fragment {
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		if (getUserVisibleHint() == false) {
+			return false;
+		}
 		switch (item.getItemId()) {
 		case R.id.move_task:
-			// TODO move selected task...
+			DialogFragment dpf = new MainActivity.DatePickerFragment();
+			dpf.setTargetFragment(this, 0);
+			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
+			return true;
+		case R.id.delete_task:
+			new DeleteTaskFromDatabase(getActivity(), new OnDeletionCallback() {
+				@Override
+				public void onDeletionDone() {
+					mTasks.remove(mSelectedTask);
+					mAdapter = new TodayListAdapter(getActivity(), mTasks);
+					ListView listView = (ListView) mRootView
+							.findViewById(R.id.tasks_list);
+					listView.setAdapter(mAdapter);
+				}
+			}).execute(mTasks.get(mSelectedTask).getId());
 			return true;
 		}
 		return super.onContextItemSelected(item);
@@ -102,12 +129,14 @@ public class TodayFragment extends Fragment {
 				if (! mTasks.isEmpty()) {
 					Intent intent = new Intent(getActivity(),
 							ListActivity.class);
+					String date = Utilities.getDate();
 					intent.putExtra(MainActivity.TASKS_EXTRA, mTasks);
-					intent.putExtra(MainActivity.DATE_EXTRA, mDate);
+					intent.putExtra(MainActivity.DATE_EXTRA, date);
 					startActivity(intent);
 				}
 			}
 		});
+		button.setEnabled(false);
 		
 		button = (Button) mRootView.findViewById(R.id.delete_button);
 		button.setOnClickListener(new OnClickListener() {
@@ -118,18 +147,33 @@ public class TodayFragment extends Fragment {
 						getString(R.string.confirm), 
 						getString(R.string.delete_list_message), 
 						new Utilities.ConfirmDialogListener() {
+					// The user confirms deletion.
 					@Override
 					public void PositiveClick(DialogInterface dialog, int id) {
 						String date = Utilities.getDate();
-						if (getActivity() instanceof MainActivity) {
-							MainActivity activity = 
-									(MainActivity) getActivity();
-							activity.new DeleteListFromDatabase().execute(date);
-						}
+						new DeleteListFromDatabase(getActivity(), 
+								new OnDeletionCallback() {
+							// Task has been deleted. Update UI.
+							@Override
+							public void onDeletionDone() {
+								mTasks.clear();
+								ListView listView = (ListView) mRootView
+										.findViewById(R.id.tasks_list);
+								listView.setAdapter(new TodayListAdapter(
+										getActivity(), mTasks));
+								Button edit = (Button) mRootView
+										.findViewById(R.id.edit_button);
+								Button delete = (Button) mRootView
+										.findViewById(R.id.delete_button);
+								edit.setEnabled(false);
+								delete.setEnabled(false);
+							}
+						}).execute(date);
 					}
 				});
 			}
 		});
+		button.setEnabled(false);
 	}
 	
 	
@@ -152,15 +196,34 @@ public class TodayFragment extends Fragment {
 	
 	
 	
-	private class LoadTasksFromDatabase extends AsyncTask<String, Void, Void> {
+	public void onDateSet(String date) {
+		String today = Utilities.getDate();
+		if (! date.equals(today)) {
+			new MoveTaskToDate(getActivity(), mTasks.get(mSelectedTask), date, 
+					new OnTaskMovedCallback() {
+				@Override
+				public void onTaskMoved() {
+					mTasks.remove(mSelectedTask);
+					mAdapter = new TodayListAdapter(getActivity(), mTasks);
+					ListView listView = (ListView) mRootView
+							.findViewById(R.id.tasks_list);
+					listView.setAdapter(mAdapter);
+				}
+			}).execute();
+		}
+	}
+	
+	
+	
+	private class LoadTasksFromDatabase extends AsyncTask<Void, Void, Void> {
 		private TasksDb tasksDb;
 		
 		@Override
-		protected Void doInBackground(String... params) {
+		protected Void doInBackground(Void... params) {
+			String date = Utilities.getDate();
 			tasksDb = new TasksDb(getActivity());
 			tasksDb.open();
-			mTasks.clear();
-			mTasks = tasksDb.getTasksByDate(params[0]);
+			mTasks = tasksDb.getTasksByDate(date);
 			tasksDb.close();
 			
 			return null;
@@ -169,8 +232,15 @@ public class TodayFragment extends Fragment {
 		@Override
 		protected void onPostExecute(Void result) {
 			mAdapter = new TodayListAdapter(getActivity(), mTasks);
-			ListView listView = (ListView) mRootView.findViewById(R.id.tasks_list);
+			ListView listView = (ListView) mRootView
+					.findViewById(R.id.tasks_list);
 			listView.setAdapter(mAdapter);
+			Button edit = (Button) mRootView.findViewById(R.id.edit_button);
+			Button delete = (Button) mRootView.findViewById(R.id.delete_button);
+			if (! mTasks.isEmpty()) {
+				edit.setEnabled(true);
+				delete.setEnabled(true);
+			}
 		}
 		
 	}
@@ -318,5 +388,6 @@ public class TodayFragment extends Fragment {
 		}
 		
 	}
+
 
 }

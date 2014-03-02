@@ -1,0 +1,282 @@
+package no.hig.strand.lars.todoity;
+
+import no.hig.strand.lars.todoity.Utilities.ErrorDialogFragment;
+import no.hig.strand.lars.todoity.services.ContextService;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.FragmentTransaction;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+
+public class MainActivity extends FragmentActivity {
+
+	private TabsPagerAdapter mTabsPagerAdapter;
+	private ViewPager mViewPager;
+	
+	public static int mActiveTasks = 0;
+	
+	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+	
+	public static final String TASKS_EXTRA = "no.hig.strand.lars.mtp.TASKS";
+	public static final String DATE_EXTRA  = "no.hig.strand.lars.mtp.DATE";
+	public static final String RECEIVER_EXTRA = 
+			"no.hig.strand.lars.mtp.RECEIVER";
+	
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences sharedPref = PreferenceManager
+        		.getDefaultSharedPreferences(this);
+        String occupationPref = sharedPref.getString(
+        		SettingsActivity.PREF_OCCUPATION_KEY,
+        		getString(R.string.pref_occupation_default));
+        if (occupationPref.equals(getString(
+        		R.string.pref_occupation_default))) {
+        	showWelcomeDialog();
+        }
+        
+        mTabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mTabsPagerAdapter);
+        
+        setupUI();
+        
+    }
+
+    
+    
+    @Override
+	protected void onResume() {
+		super.onResume();
+	}
+    
+    
+    
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    
+    
+	
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+    	switch (item.getItemId()) {
+		case R.id.action_settings:
+			startActivity(new Intent(this, SettingsActivity.class));
+			return true;
+		case R.id.action_about:
+			startActivity(new Intent(this, AboutActivity.class));
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+
+    
+    private void showWelcomeDialog() {
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	LayoutInflater inflater = getLayoutInflater();
+    	View view = inflater.inflate(R.layout.dialog_welcome, null);
+    	ListView list = (ListView) view.findViewById(R.id.occupation_list);
+    	
+    	builder.setTitle(getString(R.string.welcome));
+    	builder.setView(view);
+    	final AlertDialog dialog = builder.create();
+    	// To make sure the user selects an occupation and to not override the
+    	//  back button.
+    	dialog.setCanceledOnTouchOutside(false);
+    	dialog.setOnCancelListener(new OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				finish();
+			}
+		});
+    	
+    	list.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, 
+					int position, long id) {
+				SharedPreferences sharedPref = PreferenceManager
+		        		.getDefaultSharedPreferences(MainActivity.this);
+		        Editor editor = sharedPref.edit();
+		        editor.putString(SettingsActivity.PREF_OCCUPATION_KEY, 
+		        		((TextView)view).getText().toString());
+		        editor.commit();
+				dialog.dismiss();
+			}
+		});
+    	dialog.show();
+    }
+    
+    
+
+	private void setupUI() {
+    	final ActionBar actionBar = getActionBar();
+    	actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+    	
+    	ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+			@Override
+			public void onTabUnselected(Tab tab, FragmentTransaction ft) {}
+			
+			@Override
+			public void onTabSelected(Tab tab, FragmentTransaction ft) {
+				mViewPager.setCurrentItem(tab.getPosition());
+			}
+			
+			@Override
+			public void onTabReselected(Tab tab, FragmentTransaction ft) {}
+		};
+		
+		actionBar.addTab(actionBar.newTab().setText(R.string.today)
+				.setTabListener(tabListener));
+		actionBar.addTab(actionBar.newTab().setText(R.string.week)
+				.setTabListener(tabListener));
+		actionBar.addTab(actionBar.newTab().setText(R.string.all_tasks)
+				.setTabListener(tabListener));
+		
+		mViewPager.setOnPageChangeListener(
+				new ViewPager.SimpleOnPageChangeListener() {
+			@Override
+			public void onPageSelected(int position) {
+				getActionBar().setSelectedNavigationItem(position);
+			}
+		});
+		
+    }
+	
+	
+	
+	public class DeleteListFromDatabase extends AsyncTask<String, Void, Void> {
+		TasksDb tasksDb;
+
+		@Override
+		protected Void doInBackground(String... params) {
+			TasksDb tasksDb;
+			tasksDb = new TasksDb(getApplicationContext());
+			tasksDb.open();
+			
+			tasksDb.deleteListByDate(params[0]);
+			tasksDb.close();
+			
+			return null;
+		}
+		
+	}
+	
+	
+	
+	public void startTask() {
+		if (isServicesAvailable()) {
+			mActiveTasks += 1;
+			Intent intent = new Intent(this, ContextService.class);
+			startService(intent);
+		}
+		
+	}
+	
+	
+	
+	public void pauseTask() {
+		mActiveTasks -= 1;
+		Intent intent = new Intent(this, ContextService.class);
+		stopService(intent);
+	}
+	
+	
+	
+	private boolean isServicesAvailable() {
+		int resultCode = GooglePlayServicesUtil
+				.isGooglePlayServicesAvailable(this);
+		if (resultCode == ConnectionResult.SUCCESS) {
+			Log.d("Todoity MainActivity", "Google Play Services is available");
+			return true;
+		} else {
+			Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
+					resultCode, this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+			if (errorDialog != null) {
+				ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+				errorFragment.setDialog(errorDialog);
+				errorFragment.show(getSupportFragmentManager(),
+						"Location Updates");
+			}
+			return false;
+		}
+	}
+	
+	
+	
+	@Override
+	protected void onActivityResult(
+			int requestCode, int resultCode, Intent data) {
+		if (requestCode == CONNECTION_FAILURE_RESOLUTION_REQUEST) {
+			if (resultCode == RESULT_OK) {
+				
+			}
+		}
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+	
+    
+    
+    public class TabsPagerAdapter extends FragmentStatePagerAdapter {
+
+    	
+		public TabsPagerAdapter(FragmentManager fm) {
+			super(fm);
+		}
+
+		
+		
+		@Override
+		public Fragment getItem(int i) {
+			switch (i) {
+			case 0: return new TodayFragment();
+			case 1: return new WeekFragment();
+			case 2: return new AllTasksFragment();
+			default: return new TodayFragment();
+			}
+		}
+
+		
+		
+		@Override
+		public int getCount() {
+			return 3;
+		}
+    	
+    }
+    
+    
+}

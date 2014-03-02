@@ -33,7 +33,10 @@ public class TasksDb {
 	 * Fetching queries
 	 */
 	public Cursor fetchLists() {
-		return null;
+		Cursor c = mDb.query(ListEntry.TABLE_NAME, 
+				new String[] { ListEntry._ID, ListEntry.COLUMN_NAME_DATE },
+				null, null, null, null, null);
+		return c;
 	}
 	
 	
@@ -47,12 +50,6 @@ public class TasksDb {
 				null, null, null);
 
 		return c;
-	}
-	
-	
-	
-	public Cursor fetchTasks() {
-		return null;
 	}
 	
 	
@@ -156,7 +153,31 @@ public class TasksDb {
 	
 	
 	public boolean deleteTaskById(int taskId) {
-		return false;
+		// If a task to be deleted is the last in a list, also delete the list.
+		Cursor c = mDb.query(TaskEntry.TABLE_NAME, 
+				null, 
+				TaskEntry._ID + " = ?", 
+				new String[] { Integer.toString(taskId) },
+				null, null, null);
+		if (c.moveToFirst()) {
+			long listId = c.getLong(c.getColumnIndexOrThrow(
+					TaskEntry.COLUMN_NAME_LIST));
+			c = mDb.query(TaskEntry.TABLE_NAME, 
+					null, 
+					TaskEntry.COLUMN_NAME_LIST + " = ?", 
+					new String[] { Long.toString(listId) },
+					null, null, null);
+			if (c.getCount() == 1) {
+				mDb.delete(ListEntry.TABLE_NAME, 
+						ListEntry._ID + " = ?", 
+						new String[] { Long.toString(listId) } );
+				
+			}
+		}
+		int result = mDb.delete(TaskEntry.TABLE_NAME,
+				TaskEntry._ID + " = ?",
+				new String[] {Long.toString(taskId)});
+		return result > 0 ? true : false;
 	}
 	
 	

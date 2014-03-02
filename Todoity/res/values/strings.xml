@@ -45,6 +45,7 @@
     <string name="add">Add</string>
     <string name="occupation">Occupation</string>
     <string name="move_task">Move task to another day</string>
+    <string name="welcome">Welcome</string>
 
     <!-- Messages/Alerts -->
     <string name="set_location_message">You must choose a location for your task.</string>
@@ -54,7 +55,7 @@
     <string name="save_message">Saving. Please wait&#8230;</string>
     <string name="discard_list_message">Are you sure you want do discard this list?</string>
     <string name="delete_list_message">Are you sure you want to delete this list?</string>
-    <string name="welcome_message">Welcome to MTP. As this is your first time running this application, please select an occupation before proceeding.</string>
+    <string name="welcome_message">Welcome to Todoity. As this is your first time running this application, please select an occupation before proceeding. You can change your occupation in settings later.</string>
     <string name="no_tasks_message">You haven\'t entered any tasks to save.</string>
     <string name="existing_list_message">A list with this date already exist. Do you wish to add tasks to the existing list or delete the existing list?</string>
     <string name="about_message">Todoity is developed as a Master thesis project at Gjøvik University College. It\'s purpose is not only to keep track of your tasks but also to gather contextual information as you do the tasks in order to give you future task recommendations.</string>
@@ -65,7 +66,7 @@
 
     <!-- Preferences -->
     <string name="pref_context_storage">Context Storage</string>
-    <string name="pref_occupation_default">Undergratuate student (Bachelor)</string>
+    <string name="pref_occupation_default">None</string>
     <string name="pref_context_storage_summ">Allow application to collect and store context information</string>
 
     <!-- Arrays -->
@@ -91,6 +92,7 @@
         <item>Postgraduate student (Master, Ph.D.)</item>
     </string-array>
 
+    
     <!-- Colors -->
     <color name="lightgreen">#2200ff00</color>
     <color name="lightgrey">#55aaaaaa</color>

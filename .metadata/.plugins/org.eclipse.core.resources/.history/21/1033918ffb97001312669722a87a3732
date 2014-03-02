@@ -1,7 +1,0 @@
-package no.hig.strand.lars.mtp.broadcastreceivers;
-
-import android.content.BroadcastReceiver;
-
-public class BootReceiver extends BroadcastReceiver {
-
-}

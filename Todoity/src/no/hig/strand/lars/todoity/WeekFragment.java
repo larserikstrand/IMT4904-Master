@@ -6,15 +6,24 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-import no.hig.strand.lars.todoity.R;
+import no.hig.strand.lars.todoity.MainActivity.DeleteListFromDatabase;
+import no.hig.strand.lars.todoity.MainActivity.DeleteTaskFromDatabase;
+import no.hig.strand.lars.todoity.MainActivity.MoveTaskToDate;
+import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
+import no.hig.strand.lars.todoity.MainActivity.OnTaskMovedCallback;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -29,11 +38,16 @@ public class WeekFragment extends Fragment {
 
 	private View mRootView;
 	private WeekListAdapter mAdapter;
+	private List<String> mDates;
+	private HashMap<String, List<Task>> mTasks;
 	private String mSelectedDate;
+	// Variables for getting the selected group and child. (Hacky, but works!).
+	private int mSelectedGroup;
+	private int mSelectedTask;
 	
 	// The amount of days to show in the week 
 	//  list (ie. one week from 'tomorrow').
-	private static final int NUMBER_OF_DAYS = 6;
+	private static final int NUMBER_OF_DAYS = 7;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,9 +65,52 @@ public class WeekFragment extends Fragment {
 	
 	
 	@Override
-	public void onResume() {
-		new LoadWeekListFromDatabase().execute();
-		super.onResume();
+	public void setUserVisibleHint(boolean isVisibleToUser) {
+		super.setUserVisibleHint(isVisibleToUser);
+		if (isVisibleToUser) {
+			new LoadWeekListFromDatabase().execute();
+		}
+	}
+	
+	
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		String[] tag = ((String) v.getTag()).split("\\s+");
+		mSelectedGroup = Integer.valueOf(tag[0]);
+		mSelectedTask = Integer.valueOf(tag[1]);
+		mSelectedDate = mDates.get(mSelectedGroup);
+		MenuInflater inflater = getActivity().getMenuInflater();
+		inflater.inflate(R.menu.context_menu_task, menu);
+	}
+	
+	
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		if (getUserVisibleHint() == false) {
+			return false;
+		}
+		switch (item.getItemId()) {
+		case R.id.move_task:
+			DialogFragment dpf = new MainActivity.DatePickerFragment();
+			dpf.setTargetFragment(this, 0);
+			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
+			return true;
+		case R.id.delete_task:
+			new DeleteTaskFromDatabase(getActivity(), new OnDeletionCallback() {
+				@Override
+				public void onDeletionDone() {
+					// Re-read tasks from database (maybe not the prettiest
+					//  solution, but certainly the easiest).
+					new LoadWeekListFromDatabase().execute();
+				}
+			}).execute(mTasks.get(mSelectedDate).get(mSelectedTask).getId());
+			return true;
+		}
+		return super.onContextItemSelected(item);
 	}
 	
 	
@@ -66,6 +123,21 @@ public class WeekFragment extends Fragment {
 				startActivity(new Intent(getActivity(), ListActivity.class));
 			}
 		});
+	}
+	
+	
+	
+	public void onDateSet(String date) {
+		if (! date.equals(mSelectedDate)) {
+			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
+			new MoveTaskToDate(getActivity(), task, date, 
+					new OnTaskMovedCallback() {
+				@Override
+				public void onTaskMoved() {
+					new LoadWeekListFromDatabase().execute();
+				}
+			}).execute();
+		}
 	}
 	
 	
@@ -98,6 +170,8 @@ public class WeekFragment extends Fragment {
 					tasks.put(date, dateTasks);
 				}
 			}
+			mDates = dates;
+			mTasks = tasks;
 			tasksDb.close();
 			
 			return null;
@@ -145,6 +219,8 @@ public class WeekFragment extends Fragment {
 			LayoutInflater inflater = (LayoutInflater) context
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = inflater.inflate(R.layout.item_week_list, null);
+			convertView.setTag(groupPosition + " " + childPosition);
+			registerForContextMenu(convertView);
 			
 			TextView taskText = (TextView) convertView
 					.findViewById(R.id.task_text);
@@ -228,12 +304,13 @@ public class WeekFragment extends Fragment {
 						@Override
 						public void PositiveClick(DialogInterface dialog, 
 								int id) {
-							if (getActivity() instanceof MainActivity) {
-								MainActivity activity = 
-										(MainActivity) getActivity();
-								activity.new DeleteListFromDatabase()
-										.execute(mSelectedDate);
-							}
+							new DeleteListFromDatabase(context, 
+									new OnDeletionCallback() {
+								@Override
+								public void onDeletionDone() {
+									new LoadWeekListFromDatabase().execute();
+								}
+							}).execute(mSelectedDate);
 						}
 					});
 				}
