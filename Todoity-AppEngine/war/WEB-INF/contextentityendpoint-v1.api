@@ -1,0 +1,225 @@
+{
+  "extends" : "thirdParty.api",
+  "abstract" : false,
+  "root" : "https://eighth-alchemy-498.appspot.com/_ah/api",
+  "name" : "contextentityendpoint",
+  "version" : "v1",
+  "defaultVersion" : false,
+  "adapter" : {
+    "bns" : "https://eighth-alchemy-498.appspot.com/_ah/spi",
+    "deadline" : 10.0,
+    "type" : "lily"
+  },
+  "auth" : {
+    "allowCookieAuth" : false
+  },
+  "frontendLimits" : {
+    "unregisteredUserQps" : -1,
+    "unregisteredQps" : -1,
+    "unregisteredDaily" : -1,
+    "rules" : [ ]
+  },
+  "cacheControl" : {
+    "type" : "no-cache",
+    "maxAge" : 0
+  },
+  "ownerDomain" : "hig.no",
+  "ownerName" : "hig.no",
+  "packagePath" : "strand.lars.todoity",
+  "methods" : {
+    "contextentityendpoint.removeContextEntity" : {
+      "path" : "contextentity/{id}",
+      "httpMethod" : "DELETE",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.ContextEntityEndpoint.removeContextEntity",
+      "request" : {
+        "parameters" : {
+          "id" : {
+            "type" : "int64",
+            "required" : true
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "empty"
+      }
+    },
+    "contextentityendpoint.getContextEntity" : {
+      "path" : "contextentity/{id}",
+      "httpMethod" : "GET",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.ContextEntityEndpoint.getContextEntity",
+      "request" : {
+        "parameters" : {
+          "id" : {
+            "type" : "int64",
+            "required" : true
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "contextentityendpoint.insertContextEntity" : {
+      "path" : "contextentity",
+      "httpMethod" : "POST",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.ContextEntityEndpoint.insertContextEntity",
+      "request" : {
+        "body" : "autoTemplate(backendRequest)",
+        "bodyName" : "resource"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "contextentityendpoint.updateContextEntity" : {
+      "path" : "contextentity",
+      "httpMethod" : "PUT",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.ContextEntityEndpoint.updateContextEntity",
+      "request" : {
+        "body" : "autoTemplate(backendRequest)",
+        "bodyName" : "resource"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "contextentityendpoint.listContextEntity" : {
+      "path" : "contextentity",
+      "httpMethod" : "GET",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.ContextEntityEndpoint.listContextEntity",
+      "request" : {
+        "parameters" : {
+          "cursor" : {
+            "type" : "string",
+            "required" : false
+          },
+          "limit" : {
+            "type" : "int32",
+            "required" : false
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    }
+  },
+  "descriptor" : {
+    "schemas" : {
+      "ContextEntity" : {
+        "id" : "ContextEntity",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "context" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Key" : {
+        "id" : "Key",
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "appId" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "parent" : {
+            "$ref" : "Key"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "complete" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CollectionResponse_ContextEntity" : {
+        "id" : "CollectionResponse_ContextEntity",
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "ContextEntity"
+            }
+          },
+          "nextPageToken" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "methods" : {
+      "no.hig.strand.lars.todoity.ContextEntityEndpoint.removeContextEntity" : {
+      },
+      "no.hig.strand.lars.todoity.ContextEntityEndpoint.getContextEntity" : {
+        "response" : {
+          "$ref" : "ContextEntity"
+        }
+      },
+      "no.hig.strand.lars.todoity.ContextEntityEndpoint.insertContextEntity" : {
+        "request" : {
+          "$ref" : "ContextEntity"
+        },
+        "response" : {
+          "$ref" : "ContextEntity"
+        }
+      },
+      "no.hig.strand.lars.todoity.ContextEntityEndpoint.updateContextEntity" : {
+        "request" : {
+          "$ref" : "ContextEntity"
+        },
+        "response" : {
+          "$ref" : "ContextEntity"
+        }
+      },
+      "no.hig.strand.lars.todoity.ContextEntityEndpoint.listContextEntity" : {
+        "response" : {
+          "$ref" : "CollectionResponse_ContextEntity"
+        }
+      }
+    }
+  }
+}

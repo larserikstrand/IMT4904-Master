@@ -19,10 +19,33 @@
         	android:layout_height="wrap_content"
         	android:orientation="vertical" >
         
-        	<TextView
+    	    <TextView
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
         		android:layout_marginTop="5dp"
+        		android:text="@string/task"
+        		android:textAppearance="?android:attr/textAppearanceLarge" />
+    		
+    		<View android:layout_width="match_parent"
+        		android:layout_height="2dp"
+        		android:layout_marginBottom="10dp"
+        		android:background="@android:color/black" />
+    
+    		<Spinner android:id="@+id/category_spinner"
+        		android:layout_width="match_parent"
+        		android:layout_height="wrap_content" />
+    
+    		<EditText android:id="@+id/description_edit"
+        		android:layout_width="match_parent"
+        		android:layout_height="wrap_content"
+        		android:lines="2"
+        		android:hint="@string/task_description_hint"
+        		android:inputType="textCapSentences" />
+    	    
+        	<TextView
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:layout_marginTop="30dp"
         		android:text="@string/location"
         		android:textAppearance="?android:attr/textAppearanceLarge" />
         	
@@ -42,31 +65,7 @@
         		android:layout_height="wrap_content"
         		android:background="?android:attr/selectableItemBackground"
         		android:text="@string/pinpoint"
-        		android:drawableRight="@drawable/ic_location_place" />
-
-    		<TextView
-        		android:layout_width="wrap_content"
-        		android:layout_height="wrap_content"
-        		android:layout_marginTop="30dp"
-        		android:text="@string/task"
-        		android:textAppearance="?android:attr/textAppearanceLarge" />
-    		
-    		<View android:layout_width="match_parent"
-        		android:layout_height="2dp"
-        		android:layout_marginBottom="10dp"
-        		android:background="@android:color/black" />
-    
-    		<Spinner android:id="@+id/category_spinner"
-        		android:layout_width="match_parent"
-        		android:layout_height="wrap_content" />
-    
-    		<EditText android:id="@+id/description_edit"
-        		android:layout_width="match_parent"
-        		android:layout_height="wrap_content"
-        		android:layout_marginBottom="10dp"
-        		android:lines="2"
-        		android:hint="@string/task_description_hint"
-        		android:inputType="textCapSentences" />
+        		android:drawableRight="@drawable/ic_location_place" />    		
 
     		<TextView
         		android:layout_width="wrap_content"

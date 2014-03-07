@@ -27,27 +27,6 @@
   "ownerName" : "hig.no",
   "packagePath" : "strand.lars.todoity",
   "methods" : {
-    "taskentityendpoint.getTaskEntity" : {
-      "path" : "taskentity/{id}",
-      "httpMethod" : "GET",
-      "authLevel" : "NONE",
-      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
-      "audiences" : [ ],
-      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
-      "rosyMethod" : "no.hig.strand.lars.todoity.TaskEntityEndpoint.getTaskEntity",
-      "request" : {
-        "parameters" : {
-          "id" : {
-            "type" : "int64",
-            "required" : true
-          }
-        },
-        "body" : "empty"
-      },
-      "response" : {
-        "body" : "autoTemplate(backendResponse)"
-      }
-    },
     "taskentityendpoint.removeTaskEntity" : {
       "path" : "taskentity/{id}",
       "httpMethod" : "DELETE",
@@ -59,7 +38,7 @@
       "request" : {
         "parameters" : {
           "id" : {
-            "type" : "int64",
+            "type" : "string",
             "required" : true
           }
         },
@@ -67,6 +46,27 @@
       },
       "response" : {
         "body" : "empty"
+      }
+    },
+    "taskentityendpoint.getTaskEntity" : {
+      "path" : "taskentity/{id}",
+      "httpMethod" : "GET",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "no.hig.strand.lars.todoity.TaskEntityEndpoint.getTaskEntity",
+      "request" : {
+        "parameters" : {
+          "id" : {
+            "type" : "string",
+            "required" : true
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
       }
     },
     "taskentityendpoint.listTaskEntity" : {
@@ -134,8 +134,7 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "string",
-            "format" : "int64"
+            "type" : "string"
           },
           "category" : {
             "type" : "string"
@@ -192,12 +191,12 @@
       }
     },
     "methods" : {
+      "no.hig.strand.lars.todoity.TaskEntityEndpoint.removeTaskEntity" : {
+      },
       "no.hig.strand.lars.todoity.TaskEntityEndpoint.getTaskEntity" : {
         "response" : {
           "$ref" : "TaskEntity"
         }
-      },
-      "no.hig.strand.lars.todoity.TaskEntityEndpoint.removeTaskEntity" : {
       },
       "no.hig.strand.lars.todoity.TaskEntityEndpoint.listTaskEntity" : {
         "response" : {

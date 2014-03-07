@@ -1,22 +1,30 @@
 package no.hig.strand.lars.todoity;
 
-import com.google.android.gms.maps.model.LatLng;
+import java.util.Comparator;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class Task implements Parcelable {
 
 	private int mId;
+	
+	private String mAppEngineId;
+	
 	private String mCategory;
 	private String mDescription;
 	private LatLng mLocation;
 	private String mAddress;
 	// Whether or not the task is currently in progress
 	private boolean mIsActive;
+	// Temporary time in milliseconds for the task
+	private int mTempStart;
 	// Actual times for the task
 	private String mTimeStarted;
 	private String mTimeEnded;
+	// Total time spent on task in milliseconds.
 	private int mTimeSpent;
 	// Whether or not the task is finished (i.e. should sometimes not be displayed).
 	private boolean mIsFinished;
@@ -27,29 +35,13 @@ public class Task implements Parcelable {
 	
 	public Task() {
 		mId = 0;
+		mAppEngineId = "";
 		mCategory = "";
 		mDescription = "";
 		mLocation = new LatLng(0, 0);
 		mAddress = "";
 		mIsActive = false;
-		mTimeStarted = "";
-		mTimeEnded = "";
-		mTimeSpent = 0;
-		mIsFinished = false;
-		
-		mFixedStart = "";
-		mFixedEnd = "";
-	}
-	
-	
-	
-	public Task(String category, String description, LatLng location) {
-		mId = 0;
-		mCategory = category;
-		mDescription = description;
-		mLocation = location;
-		mAddress = "";
-		mIsActive = false;
+		mTempStart = 0;
 		mTimeStarted = "";
 		mTimeEnded = "";
 		mTimeSpent = 0;
@@ -76,11 +68,13 @@ public class Task implements Parcelable {
 	
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(mId);
 		dest.writeString(mCategory);
 		dest.writeString(mDescription);
 		dest.writeParcelable(mLocation, flags);
 		dest.writeString(mAddress);
 		dest.writeInt((int) (mIsActive ? 1 : 0));
+		dest.writeInt(mTempStart);
 		dest.writeString(mTimeStarted);
 		dest.writeString(mTimeEnded);
 		dest.writeInt(mTimeSpent);
@@ -91,11 +85,13 @@ public class Task implements Parcelable {
 	
 	
 	private void readFromParcel(Parcel in) {
+		mId = in.readInt();
 		mCategory = in.readString();
 		mDescription = in.readString();
 		mLocation = in.readParcelable(LatLng.class.getClassLoader());
 		mAddress = in.readString();
 		mIsActive = in.readInt() != 0;
+		mTempStart = in.readInt();
 		mTimeStarted = in.readString();
 		mTimeEnded = in.readString();
 		mTimeSpent = in.readInt();
@@ -131,6 +127,22 @@ public class Task implements Parcelable {
 	
 	public void setId(int id) {
 		mId = id;
+	}
+	
+	
+	
+	/**
+	 * To be used solely for AppEngine calls.
+	 * @return
+	 */
+	public String getAppEngineId() {
+		return mAppEngineId;
+	}
+	
+	
+	
+	public void setAppEngineId(String appEngineId) {
+		mAppEngineId = appEngineId;
 	}
 	
 	
@@ -191,6 +203,18 @@ public class Task implements Parcelable {
 	
 	public void setActive(boolean isActive) {
 		mIsActive = isActive;
+	}
+	
+	
+	
+	public int getTempStart() {
+		return mTempStart;
+	}
+	
+	
+	
+	public void setTempStart(int start) {
+		mTempStart = start;
 	}
 	
 	
@@ -271,4 +295,15 @@ public class Task implements Parcelable {
 		mFixedEnd = fixedEnd;
 	}
 
+	
+	
+	public static class TaskCategoryComparator implements Comparator<Task> {
+		@Override
+		public int compare(Task lhs, Task rhs) {
+			String task1 = lhs.getCategory() + ": " + lhs.getDescription();
+			String task2 = rhs.getCategory() + ": " + rhs.getDescription();
+			return task1.compareTo(task2);
+		}
+	}
+	
 }

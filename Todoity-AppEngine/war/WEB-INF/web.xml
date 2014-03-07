@@ -5,7 +5,7 @@
   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
   <init-param>
    <param-name>services</param-name>
-   <param-value>no.hig.strand.lars.todoity.DeviceInfoEndpoint,no.hig.strand.lars.todoity.MessageEndpoint,no.hig.strand.lars.todoity.TaskEntityEndpoint</param-value>
+   <param-value>no.hig.strand.lars.todoity.ContextEntityEndpoint,no.hig.strand.lars.todoity.DeviceInfoEndpoint,no.hig.strand.lars.todoity.MessageEndpoint,no.hig.strand.lars.todoity.TaskEntityEndpoint</param-value>
   </init-param>
  </servlet>
  <servlet-mapping>

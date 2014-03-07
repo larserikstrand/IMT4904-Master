@@ -1,0 +1,11 @@
+package no.hig.strand.lars.todoity;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
+public class ContextEntity {
+	@Id
+	private String id;
+	
+}

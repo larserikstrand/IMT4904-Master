@@ -2,7 +2,6 @@ package no.hig.strand.lars.todoity.services;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
@@ -10,7 +9,6 @@ import com.google.android.gms.location.DetectedActivity;
 
 public class ActivityRecognitionIntentService extends IntentService {
 	
-	ResultReceiver resultReceiver;
 	
 	public ActivityRecognitionIntentService() {
 		super("ActivityRecognitionService");

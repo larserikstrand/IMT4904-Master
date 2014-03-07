@@ -1,17 +1,13 @@
 package no.hig.strand.lars.todoity;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
-
-import no.hig.strand.lars.todoity.R;
-import no.hig.strand.lars.todoity.taskentityendpoint.Taskentityendpoint;
-import no.hig.strand.lars.todoity.taskentityendpoint.model.TaskEntity;
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
+import no.hig.strand.lars.todoity.utils.Utilities;
+import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -149,7 +145,7 @@ public class ListActivity extends FragmentActivity {
 			Button button = (Button) findViewById(R.id.date_button);
 			String date = button.getText().toString();
 			if (! date.equals(getString(R.string.set_date))) {
-				new SaveTasksToDatabases().execute(date);
+				new SaveTask().execute(date);
 			} else {
 				Toast.makeText(this, getString(R.string.set_date_message), 
 						Toast.LENGTH_LONG).show();
@@ -208,7 +204,7 @@ public class ListActivity extends FragmentActivity {
 			public void onClick(DialogInterface dialog, int which) {
 				Button button = (Button) findViewById(R.id.date_button);
 				button.setText(mDate);
-				new DeleteExistingFromDatabase().execute(mDate);
+				new DeleteExistingTask().execute(mDate);
 			}
 		});
 		
@@ -280,7 +276,7 @@ public class ListActivity extends FragmentActivity {
 				ListActivity activity = (ListActivity) getActivity();
 				String date = formatter.format(c.getTime());
 				
-				activity.new GetExistingListFromDatabase().execute(date);
+				activity.new CheckListAvailabilityTask().execute(date);
 			}
 		}
 		
@@ -288,7 +284,7 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private class GetExistingListFromDatabase 
+	private class CheckListAvailabilityTask 
 			extends AsyncTask<String, Void, ArrayList<Task>> {
 		TasksDb tasksDb;
 		
@@ -317,7 +313,7 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private class DeleteExistingFromDatabase 
+	private class DeleteExistingTask 
 			extends AsyncTask<String, Void, Void> {
 		@Override
 		protected Void doInBackground(String... params) {
@@ -329,12 +325,14 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private class SaveTasksToDatabases extends AsyncTask<String, Void, Void> {
+	private class SaveTask extends AsyncTask<String, Void, Void> {
 		TasksDb tasksDb;
 		ProgressDialog dialog;
 		
 		@Override
 		protected void onPreExecute() {
+			// Display a progress dialog. Need to wait for response before
+			//  preceding in application. (Not ideal).
 			dialog = ProgressDialog.show(ListActivity.this
 					, "", getString(R.string.save_message), true);
 		}
@@ -348,36 +346,12 @@ public class ListActivity extends FragmentActivity {
 			tasksDb.open();
 			long listId = tasksDb.insertList(params[0]);
 			for (Task t : mTasks) {
-				tasksDb.insertTask(listId, t);
+				Long taskId = tasksDb.insertTask(listId, t);
+				t.setAppEngineId(Installation.id(ListActivity.this) +
+						" " + taskId.toString());
+				new AppEngineUtilities.SaveTask().execute(t);
 			}
 			tasksDb.close();
-			
-			// Save externally to AppEngine
-			Taskentityendpoint.Builder endpointBuilder = 
-					new Taskentityendpoint.Builder(
-							AndroidHttp.newCompatibleTransport(), 
-							new JacksonFactory(), null);
-			Taskentityendpoint endpoint = CloudEndpointUtils
-					.updateBuilder(endpointBuilder).build();
-			TaskEntity task;
-			for (Task t : mTasks) {
-				task = new TaskEntity();
-				task.setCategory(t.getCategory())
-				.setDescription(t.getDescription())
-				.setLatitude(t.getLocation().latitude)
-				.setLongitude(t.getLocation().longitude)
-				.setAddress(t.getAddress()).setActive(t.isActive())
-				.setTimeStarted(t.getTimeStarted())
-				.setTimeEnded(t.getTimeEnded())
-				.setTimeSpent(t.getTimeSpent())
-				.setFinished(t.isFinished()).setFixedStart(t.getFixedStart())
-				.setFixedEnd(t.getFixedEnd());
-				try {
-					endpoint.insertTaskEntity(task).execute();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 			
 			return null;
 		}
@@ -385,6 +359,7 @@ public class ListActivity extends FragmentActivity {
 		@Override
 		protected void onPostExecute(Void result) {
 			dialog.dismiss();
+			//Toast.makeText(ListActivity.this, mTasks.get(0).getAppEngineId().toString(), Toast.LENGTH_LONG);
 			finish();
 		}
 	}

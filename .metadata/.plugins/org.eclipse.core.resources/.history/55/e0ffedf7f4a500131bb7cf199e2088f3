@@ -1,0 +1,54 @@
+package no.hig.strand.lars.todoity.utils;
+
+import no.hig.strand.lars.todoity.MainActivity;
+import no.hig.strand.lars.todoity.Task;
+import no.hig.strand.lars.todoity.TasksDb;
+import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
+import android.os.AsyncTask;
+
+public class DatabaseUtilities {
+
+	public DatabaseUtilities() {}
+	
+	
+	public interface OnDeletionCallback {
+		public void onDeletionDone();
+	}
+	
+	public interface OnTaskMovedCallback {
+		public void onTaskMoved();
+	}
+	
+	
+	public static class UpdateTask extends AsyncTask<Task, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Task... params) {
+			Task task = params[0];
+			TasksDb db = MainActivity.mTasksDb;
+			db.updateTask(task);
+			return null;
+		}
+	}
+	
+	
+	
+	public static class DeleteList extends AsyncTask<String, Void, Void> {
+		private OnDeletionCallback callback;
+
+		public DeleteList(OnDeletionCallback callback) {
+			this.callback = callback;
+		}
+
+		@Override
+		protected Void doInBackground(String... params) {
+			mTasksDb.deleteListByDate(params[0]);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			callback.onDeletionDone();
+		}
+	}
+}

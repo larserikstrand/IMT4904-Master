@@ -7,15 +7,18 @@ import java.util.Calendar;
 import java.util.List;
 
 import no.hig.strand.lars.todoity.R;
+import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
@@ -142,8 +145,21 @@ public class NewTaskActivity extends FragmentActivity {
 		
 		// Set behavior of the category spinner.
 		Spinner spinner = (Spinner) findViewById(R.id.category_spinner);
+		
+		// Read occupation from preferences and set 
+		//  predefined categories accordingly.
+		SharedPreferences sharedPref = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String occupationPref = sharedPref.getString(
+				SettingsActivity.PREF_OCCUPATION_KEY, "");
+		int spinnerArray; 
+		if (occupationPref.equals(getString(R.string.pref_undergraduate))) {
+			spinnerArray = R.array.undergraduate_tasks_array;
+		} else {
+			spinnerArray = R.array.postgraduate_tasks_array;
+		}
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter
-				.createFromResource(this, R.array.undergraduate_tasks_array,
+				.createFromResource(this, spinnerArray,
 						android.R.layout.simple_spinner_dropdown_item);
 		adapter.setDropDownViewResource(
 				android.R.layout.simple_spinner_dropdown_item);

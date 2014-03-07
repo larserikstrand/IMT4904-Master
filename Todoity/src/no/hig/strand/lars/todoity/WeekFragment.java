@@ -3,14 +3,16 @@ package no.hig.strand.lars.todoity;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import no.hig.strand.lars.todoity.MainActivity.DeleteListFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.DeleteTaskFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.MoveTaskToDate;
-import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
-import no.hig.strand.lars.todoity.MainActivity.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteList;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteTask;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -65,6 +67,14 @@ public class WeekFragment extends Fragment {
 	
 	
 	@Override
+	public void onResume() {
+		super.onResume();
+		setUserVisibleHint(true);
+	}
+	
+	
+	
+	@Override
 	public void setUserVisibleHint(boolean isVisibleToUser) {
 		super.setUserVisibleHint(isVisibleToUser);
 		if (isVisibleToUser) {
@@ -100,7 +110,7 @@ public class WeekFragment extends Fragment {
 			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
 			return true;
 		case R.id.delete_task:
-			new DeleteTaskFromDatabase(getActivity(), new OnDeletionCallback() {
+			new DeleteTask(new OnDeletionCallback() {
 				@Override
 				public void onDeletionDone() {
 					// Re-read tasks from database (maybe not the prettiest
@@ -130,8 +140,7 @@ public class WeekFragment extends Fragment {
 	public void onDateSet(String date) {
 		if (! date.equals(mSelectedDate)) {
 			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
-			new MoveTaskToDate(getActivity(), task, date, 
-					new OnTaskMovedCallback() {
+			new MoveTaskToDate(task, date, new OnTaskMovedCallback() {
 				@Override
 				public void onTaskMoved() {
 					new LoadWeekListFromDatabase().execute();
@@ -143,15 +152,12 @@ public class WeekFragment extends Fragment {
 	
 	
 	private class LoadWeekListFromDatabase extends AsyncTask<Void, Void, Void> {
-		TasksDb tasksDb;
 		List<String> dates;
 		HashMap<String, List<Task>> tasks;
 
 		@SuppressLint("SimpleDateFormat")
 		@Override
 		protected Void doInBackground(Void... params) {
-			tasksDb = new TasksDb(getActivity());
-			tasksDb.open();
 			
 			dates = new ArrayList<String>();
 			tasks = new HashMap<String, List<Task>>();
@@ -164,15 +170,19 @@ public class WeekFragment extends Fragment {
 			for (int i = 0; i < NUMBER_OF_DAYS; i++) {
 				c.add(Calendar.DATE, 1);
 				date = formatter.format(c.getTime());
-				dateTasks = tasksDb.getTasksByDate(date);
+				dateTasks = MainActivity.tasksDb.getTasksByDate(date);
 				if (! dateTasks.isEmpty()) {
 					dates.add(date);
 					tasks.put(date, dateTasks);
 				}
 			}
+			Collections.sort(dates, new Utilities.DateComparator());
+			for (String d : dates) {
+				Collections.sort(tasks.get(d), 
+						new Task.TaskCategoryComparator());
+			}
 			mDates = dates;
 			mTasks = tasks;
-			tasksDb.close();
 			
 			return null;
 		}
@@ -304,8 +314,7 @@ public class WeekFragment extends Fragment {
 						@Override
 						public void PositiveClick(DialogInterface dialog, 
 								int id) {
-							new DeleteListFromDatabase(context, 
-									new OnDeletionCallback() {
+							new DeleteList(new OnDeletionCallback() {
 								@Override
 								public void onDeletionDone() {
 									new LoadWeekListFromDatabase().execute();

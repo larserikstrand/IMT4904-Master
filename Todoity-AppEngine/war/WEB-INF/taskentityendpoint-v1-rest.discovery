@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"FWXGb4Q2eZqWRcG8B2Ixrr-vrqQ/3Y_6qrnLx7mQ9A7GhJE0HLrYIag\"",
+ "etag": "\"FWXGb4Q2eZqWRcG8B2Ixrr-vrqQ/J57SjH7-u8vdpDbuR5uGTQQ9O-o\"",
  "discoveryVersion": "v1",
  "id": "taskentityendpoint:v1",
  "name": "taskentityendpoint",
@@ -115,8 +115,7 @@
      "type": "string"
     },
     "id": {
-     "type": "string",
-     "format": "int64"
+     "type": "string"
     },
     "latitude": {
      "type": "number",
@@ -148,7 +147,6 @@
     "id": {
      "type": "string",
      "required": true,
-     "format": "int64",
      "location": "path"
     }
    },
@@ -207,7 +205,6 @@
     "id": {
      "type": "string",
      "required": true,
-     "format": "int64",
      "location": "path"
     }
    },

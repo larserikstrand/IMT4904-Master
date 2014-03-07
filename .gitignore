@@ -10,3 +10,8 @@
 # generated files
 bin/
 gen/
+
+# other
+Volley/
+VolleyTests/
+google-play-services/

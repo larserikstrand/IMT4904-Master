@@ -76,7 +76,7 @@ public class TaskEntityEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getTaskEntity")
-	public TaskEntity getTaskEntity(@Named("id") Long id) {
+	public TaskEntity getTaskEntity(@Named("id") String id) {
 		EntityManager mgr = getEntityManager();
 		TaskEntity taskentity = null;
 		try {
@@ -138,7 +138,7 @@ public class TaskEntityEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removeTaskEntity")
-	public void removeTaskEntity(@Named("id") Long id) {
+	public void removeTaskEntity(@Named("id") String id) {
 		EntityManager mgr = getEntityManager();
 		try {
 			TaskEntity taskentity = mgr.find(TaskEntity.class, id);
@@ -152,9 +152,6 @@ public class TaskEntityEndpoint {
 		EntityManager mgr = getEntityManager();
 		boolean contains = true;
 		try {
-			if (taskentity.getId() == null) {
-				return false;
-			}
 			TaskEntity item = mgr.find(TaskEntity.class, taskentity.getId());
 			if (item == null) {
 				contains = false;

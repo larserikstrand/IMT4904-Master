@@ -1,23 +1,23 @@
 package no.hig.strand.lars.todoity;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import no.hig.strand.lars.todoity.MainActivity.DeleteListFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.DeleteTaskFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.MoveTaskToDate;
-import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
-import no.hig.strand.lars.todoity.MainActivity.OnTaskMovedCallback;
 import no.hig.strand.lars.todoity.TasksContract.ListEntry;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteList;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteTask;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -65,6 +65,14 @@ public class AllTasksFragment extends Fragment {
 	
 	
 	@Override
+	public void onResume() {
+		super.onResume();
+		setUserVisibleHint(true);
+	}
+	
+	
+	
+	@Override
 	public void setUserVisibleHint(boolean isVisibleToUser) {
 		super.setUserVisibleHint(isVisibleToUser);
 		if (isVisibleToUser) {
@@ -100,7 +108,7 @@ public class AllTasksFragment extends Fragment {
 			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
 			return true;
 		case R.id.delete_task:
-			new DeleteTaskFromDatabase(getActivity(), new OnDeletionCallback() {
+			new DeleteTask(new OnDeletionCallback() {
 				@Override
 				public void onDeletionDone() {
 					new LoadAllTasksFromDatabase().execute();
@@ -128,8 +136,7 @@ public class AllTasksFragment extends Fragment {
 	public void onDateSet(String date) {
 		if (! date.equals(mSelectedDate)) {
 			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
-			new MoveTaskToDate(getActivity(), task, date, 
-					new OnTaskMovedCallback() {
+			new MoveTaskToDate(task, date, new OnTaskMovedCallback() {
 				@Override
 				public void onTaskMoved() {
 					new LoadAllTasksFromDatabase().execute();
@@ -141,35 +148,35 @@ public class AllTasksFragment extends Fragment {
 	
 	
 	private class LoadAllTasksFromDatabase extends AsyncTask<Void, Void, Void> {
-		TasksDb tasksDb;
 		List<String> dates;
 		HashMap<String, List<Task>> tasks;
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			tasksDb = new TasksDb(getActivity());
-			tasksDb.open();
-			
 			dates = new ArrayList<String>();
 			tasks = new HashMap<String, List<Task>>();
 			String date = "";
 			List<Task> dateTasks;
 			
-			Cursor c = tasksDb.fetchLists();
+			Cursor c = MainActivity.tasksDb.fetchLists();
 			if (c.moveToFirst()) {
 				do {
 					date = c.getString(c.getColumnIndexOrThrow(
 							ListEntry.COLUMN_NAME_DATE));
-					dateTasks = tasksDb.getTasksByDate(date);
+					dateTasks = MainActivity.tasksDb.getTasksByDate(date);
 					if (! dateTasks.isEmpty()) {
 						dates.add(date);
 						tasks.put(date, dateTasks);
 					}
 				} while (c.moveToNext());
 			}
+			Collections.sort(dates, new Utilities.DateComparator());
+			for (String d : dates) {
+				Collections.sort(tasks.get(d), 
+						new Task.TaskCategoryComparator());
+			}
 			mDates = dates;
 			mTasks = tasks;
-			tasksDb.close();
 			
 			return null;
 		}
@@ -200,16 +207,8 @@ public class AllTasksFragment extends Fragment {
 			this.groupDates = groupDates;
 			this.tasks = tasks;
 			
-			todayDate = Utilities.getDate();
-			SimpleDateFormat formatter = 
-					new SimpleDateFormat("EEEE, MMM dd, yyyy");
-			formatter.setLenient(false);
-			try {
-				Date today = formatter.parse(todayDate);
-				todayInMillis = today.getTime();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+			todayDate = Utilities.getTodayDate();
+			todayInMillis = Utilities.getTimeInMillis(todayDate);
 		}
 		
 		@Override
@@ -232,27 +231,26 @@ public class AllTasksFragment extends Fragment {
 			convertView = inflater.inflate(R.layout.item_week_list, null);
 			convertView.setTag(groupPosition + " " + childPosition);
 			
-			String date = (String) getGroup(groupPosition);
-			long dateInMillis = 0;
-			SimpleDateFormat formatter = 
-					new SimpleDateFormat("EEEE, MMM dd, yyyy");
-			formatter.setLenient(false);
-			try {
-				Date taskDate = formatter.parse(date);
-				dateInMillis = taskDate.getTime();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-			if (dateInMillis >= todayInMillis) {
-				registerForContextMenu(convertView);
-			}
-			
 			TextView taskText = (TextView) convertView
 					.findViewById(R.id.task_text);
 			taskText.setText(task.getCategory() + ": " + task.getDescription());
 			TextView locationText = (TextView) convertView
 					.findViewById(R.id.location_text);
 			locationText.setText(task.getAddress());
+			
+			if (task.isFinished()) {
+				taskText.setPaintFlags(taskText.getPaintFlags() 
+						| Paint.STRIKE_THRU_TEXT_FLAG);
+				locationText.setPaintFlags(locationText.getPaintFlags() 
+						| Paint.STRIKE_THRU_TEXT_FLAG);
+			} else {
+				registerForContextMenu(convertView);
+			}
+			
+			if (task.isActive()) {
+				convertView.setBackgroundColor(getResources()
+						.getColor(R.color.lightgreen));
+			}
 			
 			return convertView;
 		}
@@ -292,16 +290,7 @@ public class AllTasksFragment extends Fragment {
 			
 			// Find the date in milliseconds. 
 			//  The buttons should be hidden for tasks older than today.
-			long dateInMillis = 0;
-			SimpleDateFormat formatter = 
-					new SimpleDateFormat("EEEE, MMM dd, yyyy");
-			formatter.setLenient(false);
-			try {
-				Date taskDate = formatter.parse(date);
-				dateInMillis = taskDate.getTime();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}		
+			long dateInMillis = Utilities.getTimeInMillis(date);
 			
 			ImageButton imageButton = (ImageButton) convertView
 					.findViewById(R.id.group_edit_button);
@@ -345,8 +334,7 @@ public class AllTasksFragment extends Fragment {
 						@Override
 						public void PositiveClick(DialogInterface dialog, 
 								int id) {
-							new DeleteListFromDatabase(context, 
-									new OnDeletionCallback() {
+							new DeleteList(new OnDeletionCallback() {
 								@Override
 								public void onDeletionDone() {
 									new LoadAllTasksFromDatabase().execute();

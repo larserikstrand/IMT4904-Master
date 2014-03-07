@@ -1,0 +1,13 @@
+package no.hig.strand.lars.todoity.utils;
+
+import android.os.AsyncTask;
+
+public class DatabaseUtilities {
+
+	public DatabaseUtilities() {}
+	
+	
+	public static class UpdateTask extends AsyncTask<Task, Void, Void> {
+		
+	}
+}

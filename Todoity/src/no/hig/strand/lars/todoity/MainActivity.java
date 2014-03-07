@@ -1,12 +1,13 @@
 package no.hig.strand.lars.todoity;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import no.hig.strand.lars.todoity.TasksContract.ListEntry;
-import no.hig.strand.lars.todoity.Utilities.ErrorDialogFragment;
 import no.hig.strand.lars.todoity.services.ContextService;
+import no.hig.strand.lars.todoity.utils.Utilities.ErrorDialogFragment;
+import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -14,14 +15,11 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
@@ -50,7 +48,7 @@ public class MainActivity extends FragmentActivity {
 	private TabsPagerAdapter mTabsPagerAdapter;
 	private ViewPager mViewPager;
 	
-	public static int mActiveTasks = 0;
+	public static TasksDb tasksDb;
 	
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
@@ -61,20 +59,13 @@ public class MainActivity extends FragmentActivity {
 	
 	
 	
-	public interface OnDeletionCallback {
-		public void onDeletionDone();
-	}
-	
-	public interface OnTaskMovedCallback {
-		public void onTaskMoved();
-	}
-	
-	
-	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Generate unique installation id on first launch.
+        Installation.id(this);
         
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         SharedPreferences sharedPref = PreferenceManager
@@ -87,6 +78,7 @@ public class MainActivity extends FragmentActivity {
         	showWelcomeDialog();
         }
         
+        tasksDb = TasksDb.getInstance(this);
         mTabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mTabsPagerAdapter);
@@ -102,6 +94,12 @@ public class MainActivity extends FragmentActivity {
 		super.onResume();
 	}
     
+    
+    
+    @Override
+    protected void onPause() {
+    	super.onPause();
+    }
     
     
 	@Override
@@ -212,9 +210,11 @@ public class MainActivity extends FragmentActivity {
 	
 	public void startTask() {
 		if (isServicesAvailable()) {
-			mActiveTasks += 1;
-			Intent intent = new Intent(this, ContextService.class);
-			startService(intent);
+			ArrayList<Task> activeTasks = tasksDb.getActiveTasks();
+			if (activeTasks.size() <= 1) {
+				Intent intent = new Intent(this, ContextService.class);
+				startService(intent);
+			}
 		}
 		
 	}
@@ -222,9 +222,11 @@ public class MainActivity extends FragmentActivity {
 	
 	
 	public void pauseTask() {
-		mActiveTasks -= 1;
-		Intent intent = new Intent(this, ContextService.class);
-		stopService(intent);
+		ArrayList<Task> activeTasks = tasksDb.getActiveTasks();
+		if (activeTasks.isEmpty()) {
+			Intent intent = new Intent(this, ContextService.class);
+			stopService(intent);
+		}
 	}
 	
 	
@@ -262,127 +264,13 @@ public class MainActivity extends FragmentActivity {
 	}
 	
 	
-	
-	public static class DeleteListFromDatabase 
-			extends AsyncTask<String, Void, Void> {
-		private OnDeletionCallback callback;
-		private TasksDb tasksDb;
-		private Context context;
-
-		public DeleteListFromDatabase(Context context, 
-				OnDeletionCallback callback) {
-			this.context = context;
-			this.callback = callback;
-		}
-		
-		@Override
-		protected Void doInBackground(String... params) {
-			tasksDb = new TasksDb(context);
-			tasksDb.open();
-			tasksDb.deleteListByDate(params[0]);
-			tasksDb.close();
-			
-			return null;
-		}
-		
-		@Override
-		protected void onPostExecute(Void result) {
-			callback.onDeletionDone();
-		}
-		
-	}
-	
-	
-	
-	public static class DeleteTaskFromDatabase 
-			extends AsyncTask<Integer, Void, Void> {	
-		private OnDeletionCallback callback;
-		private TasksDb tasksDb;
-		private Context context;
-
-		public DeleteTaskFromDatabase(Context context, 
-				OnDeletionCallback callback) {
-			this.context = context;
-			this.callback = callback;
-		}
-		
-		@Override
-		protected Void doInBackground(Integer... params) {
-			int taskId = params[0];
-			
-			tasksDb = new TasksDb(context);
-			tasksDb.open();
-			tasksDb.deleteTaskById(taskId);
-			tasksDb.close();
-			
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			callback.onDeletionDone();
-		}
-	}
-	
-    
-	
-	public static class MoveTaskToDate extends AsyncTask<Void, Void, Void> {
-		private OnTaskMovedCallback callback;
-		private TasksDb tasksDb;
-		private Context context;
-		private Task task;
-		private String date;
-
-		public MoveTaskToDate(Context context, Task task, String date, 
-				OnTaskMovedCallback callback) {
-			this.context = context;
-			this.callback = callback;
-			this.task = task;
-			this.date = date;
-		}
-
-		@Override
-		protected Void doInBackground(Void... params) {			
-			tasksDb = new TasksDb(context);
-			tasksDb.open();
-			
-			// Move the task to the selected date. 
-			//  Create list on that date if none exist.
-			long listId = -1;
-			Cursor c = tasksDb.fetchListByDate(date);
-			if (c.moveToFirst()) {
-				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
-			} else {
-				listId = tasksDb.insertList(date);
-			}
-			
-			// Remove old task and insert new one.
-			tasksDb.deleteTaskById(task.getId());
-			tasksDb.insertTask(listId, task);
-			
-			tasksDb.close();
-			
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			callback.onTaskMoved();
-		}
-		
-	}
-	
-	
     
     public class TabsPagerAdapter extends FragmentStatePagerAdapter {
 
-    	
 		public TabsPagerAdapter(FragmentManager fm) {
 			super(fm);
 		}
-
-
-
+		
 		@Override
 		public Fragment getItem(int i) {
 			switch (i) {
@@ -393,8 +281,6 @@ public class MainActivity extends FragmentActivity {
 			}
 		}
 
-		
-		
 		@Override
 		public int getCount() {
 			return 3;

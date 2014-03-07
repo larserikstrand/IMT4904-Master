@@ -1,12 +1,19 @@
 package no.hig.strand.lars.todoity;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 
-import no.hig.strand.lars.todoity.MainActivity.DeleteListFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.DeleteTaskFromDatabase;
-import no.hig.strand.lars.todoity.MainActivity.MoveTaskToDate;
-import no.hig.strand.lars.todoity.MainActivity.OnDeletionCallback;
-import no.hig.strand.lars.todoity.MainActivity.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteList;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteTask;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.Utilities;
+import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,6 +47,10 @@ public class TodayFragment extends Fragment {
 	private TodayListAdapter mAdapter;
 	private int mSelectedTask;
 	
+	// The minimum number of seconds before a task is considered as
+	//  actually started.
+	public static final int MINIMUM_TASK_START = 1000 * 10;
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -54,6 +65,14 @@ public class TodayFragment extends Fragment {
 		new LoadTasksFromDatabase().execute();
 		
 		return rootView;
+	}
+	
+	
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		setUserVisibleHint(true);
 	}
 	
 	
@@ -92,7 +111,7 @@ public class TodayFragment extends Fragment {
 			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
 			return true;
 		case R.id.delete_task:
-			new DeleteTaskFromDatabase(getActivity(), new OnDeletionCallback() {
+			new DeleteTask(new OnDeletionCallback() {
 				@Override
 				public void onDeletionDone() {
 					mTasks.remove(mSelectedTask);
@@ -129,7 +148,7 @@ public class TodayFragment extends Fragment {
 				if (! mTasks.isEmpty()) {
 					Intent intent = new Intent(getActivity(),
 							ListActivity.class);
-					String date = Utilities.getDate();
+					String date = Utilities.getTodayDate();
 					intent.putExtra(MainActivity.TASKS_EXTRA, mTasks);
 					intent.putExtra(MainActivity.DATE_EXTRA, date);
 					startActivity(intent);
@@ -150,9 +169,8 @@ public class TodayFragment extends Fragment {
 					// The user confirms deletion.
 					@Override
 					public void PositiveClick(DialogInterface dialog, int id) {
-						String date = Utilities.getDate();
-						new DeleteListFromDatabase(getActivity(), 
-								new OnDeletionCallback() {
+						String date = Utilities.getTodayDate();
+						new DeleteList(new OnDeletionCallback() {
 							// Task has been deleted. Update UI.
 							@Override
 							public void onDeletionDone() {
@@ -178,7 +196,17 @@ public class TodayFragment extends Fragment {
 	
 	
 	
-	private void startTask() {
+	private void startTask(Task task) {
+		task.setActive(true);
+		
+		Date now = Calendar.getInstance().getTime();
+		int timeStart = Integer.valueOf(Long.toString(
+				now.getTime() % (1000*60*60*24)));
+		task.setTempStart(timeStart);
+		
+		new DatabaseUtilities.UpdateTask().execute(task);
+		new AppEngineUtilities.UpdateTask().execute(task);
+		
 		if (getActivity() instanceof MainActivity) {
 			MainActivity activity = (MainActivity) getActivity();
 			activity.startTask();
@@ -187,7 +215,21 @@ public class TodayFragment extends Fragment {
 	
 	
 	
-	private void pauseTask() {
+	private void pauseTask(Task task) {
+		task.setActive(false);
+		
+		Date now = Calendar.getInstance().getTime();
+		String date = Utilities.dateToString(now);
+		int timeEnd = Integer.valueOf(Long.toString(
+				now.getTime() % (1000*60*60*24)));
+		if ((timeEnd - task.getTempStart()) > MINIMUM_TASK_START) {
+			// Enough time has passed, we can consider the task as started.
+			task.setTimeStarted(date);
+		}
+		
+		new DatabaseUtilities.UpdateTask().execute(task);
+		new AppEngineUtilities.UpdateTask().execute(task);
+		
 		if (getActivity() instanceof MainActivity) {
 			MainActivity activity = (MainActivity) getActivity();
 			activity.pauseTask();
@@ -197,9 +239,9 @@ public class TodayFragment extends Fragment {
 	
 	
 	public void onDateSet(String date) {
-		String today = Utilities.getDate();
+		String today = Utilities.getTodayDate();
 		if (! date.equals(today)) {
-			new MoveTaskToDate(getActivity(), mTasks.get(mSelectedTask), date, 
+			new MoveTaskToDate(mTasks.get(mSelectedTask), date, 
 					new OnTaskMovedCallback() {
 				@Override
 				public void onTaskMoved() {
@@ -216,16 +258,12 @@ public class TodayFragment extends Fragment {
 	
 	
 	private class LoadTasksFromDatabase extends AsyncTask<Void, Void, Void> {
-		private TasksDb tasksDb;
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			String date = Utilities.getDate();
-			tasksDb = new TasksDb(getActivity());
-			tasksDb.open();
-			mTasks = tasksDb.getTasksByDate(date);
-			tasksDb.close();
-			
+			String date = Utilities.getTodayDate();
+			mTasks = MainActivity.tasksDb.getTasksByDate(date);
+			Collections.sort(mTasks, new Task.TaskCategoryComparator());
 			return null;
 		}
 
@@ -247,48 +285,12 @@ public class TodayFragment extends Fragment {
 	
 	
 	
-	private class SetTaskActiveStatus extends AsyncTask<Task, Void, Void> {
-		private TasksDb tasksDb;
-
-		@Override
-		protected Void doInBackground(Task... params) {
-			Task task = params[0];
-			
-			tasksDb = new TasksDb(getActivity());
-			tasksDb.open();
-			tasksDb.updateTaskActiveStatus(task.getId(), task.isActive());
-			tasksDb.close();
-			
-			return null;
-		}
-	}
-	
-	
-	
-	private class SetTaskFinishedStatus extends AsyncTask<Task, Void, Void> {
-		private TasksDb tasksDb;
-
-		@Override
-		protected Void doInBackground(Task... params) {
-			Task task = params[0];
-			
-			tasksDb = new TasksDb(getActivity());
-			tasksDb.open();
-			tasksDb.updateTaskActiveStatus(task.getId(), task.isFinished());
-			tasksDb.close();
-			
-			return null;
-		}
-	}
-	
-	
-	
 	private class TodayListAdapter extends ArrayAdapter<Task> {
 		private final Context context;
 		private final ArrayList<Task> tasks;
 		
 		public TodayListAdapter(Context context, ArrayList<Task> tasks) {
-			super(context, R.layout.item_list_task, tasks);
+			super(context, R.layout.item_today_list, tasks);
 			this.context = context;
 			this.tasks = tasks;
 		}
@@ -322,21 +324,19 @@ public class TodayFragment extends Fragment {
 				public void onClick(View v) {
 					LinearLayout layout = (LinearLayout) v.getParent();
 					int position = (Integer) layout.getTag();
-					
+					Task task = mTasks.get(position);
+					task.setAppEngineId(Installation.id(context) + " " + 
+							task.getId());
 					String text = ((Button) v).getText().toString();
 					if (text.equals(getString(R.string.start))) {
-						mTasks.get(position).setActive(true);
-						new SetTaskActiveStatus().execute(mTasks.get(position));
 						((Button) v).setText(getString(R.string.pause));
 						layout.setBackgroundColor(getResources()
 								.getColor(R.color.lightgreen));
-						startTask();
+						startTask(task);
 					} else {
-						mTasks.get(position).setActive(false);
-						new SetTaskActiveStatus().execute(mTasks.get(position));
 						((Button) v).setText(getString(R.string.start));
 						layout.setBackgroundResource(0);
-						pauseTask();
+						pauseTask(task);
 					}
 				}
 			});
@@ -357,15 +357,22 @@ public class TodayFragment extends Fragment {
 					Button button = (Button) layout.findViewById(
 							R.id.start_pause_button);
 					
+					Task task = mTasks.get(position);
+					// When the task is checked and finished.
 					if (isChecked) {
-						mTasks.get(position).setFinished(true);
+						task.setFinished(true);
+						button.setText(getString(R.string.start));
+						layout.setBackgroundResource(0);
 						taskText.setPaintFlags(taskText.getPaintFlags() 
 								| Paint.STRIKE_THRU_TEXT_FLAG);
 						locationText.setPaintFlags(locationText.getPaintFlags() 
 								| Paint.STRIKE_THRU_TEXT_FLAG);
 						button.setEnabled(false);
+						pauseTask(task);
 					} else {
-						mTasks.get(position).setFinished(false);
+						task.setFinished(false);
+						new DatabaseUtilities.UpdateTask().execute(task);
+						new AppEngineUtilities.UpdateTask().execute(task);
 						taskText.setPaintFlags(taskText.getPaintFlags() 
 								& (~Paint.STRIKE_THRU_TEXT_FLAG));
 						locationText.setPaintFlags(locationText.getPaintFlags() 

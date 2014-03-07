@@ -1,14 +1,21 @@
 package no.hig.strand.lars.todoity.services;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import no.hig.strand.lars.todoity.R;
 import no.hig.strand.lars.todoity.MainActivity;
+import no.hig.strand.lars.todoity.R;
+import no.hig.strand.lars.todoity.Task;
+import no.hig.strand.lars.todoity.TasksContract.ContextEntry;
+import no.hig.strand.lars.todoity.TasksDb;
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities.SaveContext;
+import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -16,7 +23,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
+import android.util.SparseArray;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -34,9 +41,14 @@ public class ContextService extends Service implements
 	LocationRequest locationRequest;
 	PendingIntent activityRecognitionPendingIntent;
 	ActivityRecognitionClient activityRecognitionClient;
+	TasksDb tasksDb;
+	ArrayList<Task> tasks;
+	SparseArray<List<String>> locations;
+	SparseArray<List<String>> activities;
 	boolean locationInProgress;
 	boolean activityInProgress;
 	
+	// TODO change values to something appropriate.
 	private static final long LOCATION_UPDATE_INTERVAL = 1000*10;
 	private static final long FASTEST_LOCATION_INTERVAL = 1000*5;
 	private static final long ACTIVITY_DETECTION_INTERVAL = 1000*1;
@@ -47,6 +59,10 @@ public class ContextService extends Service implements
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		
+		tasksDb = TasksDb.getInstance(this);
+		locations = new SparseArray<List<String>>();
+		activities = new SparseArray<List<String>>();
 		
 		// Instantiating the location client
 		locationClient = new LocationClient(this, this, this);
@@ -126,7 +142,7 @@ public class ContextService extends Service implements
                 .setContentTitle(getString(R.string.service_notification_title))
                 .setContentText(
                 		getString(R.string.service_notification_message))
-                .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .setSmallIcon(R.drawable.servicerunninganim)
                 .setContentIntent(pi)
                 .build();
         note.flags |= Notification.FLAG_NO_CLEAR;
@@ -179,7 +195,36 @@ public class ContextService extends Service implements
 
 	@Override
 	public void onLocationChanged(Location location) {
-		// TODO store location...
+		// Get the task registered as active.
+		tasks = tasksDb.getActiveTasks();
+		// A "failsafe" to make sure the service is stopped if there are
+		//  no active tasks.
+		if (tasks.isEmpty()) {
+			stopSelf();
+		}
+		for (Task t : tasks) {
+			ArrayList<String> taskLocations  = new ArrayList<String>();
+			ArrayList<String> taskActivities = new ArrayList<String>();
+			// For each task, get the previously stored contexts (if any).
+			Cursor c = tasksDb.fetchContextsByTaskId(t.getId());
+			if (c != null && c.moveToFirst()) {
+				do {
+					String type = c.getString(c.getColumnIndexOrThrow(
+							ContextEntry.COLUMN_NAME_TYPE));
+					String context = c.getString(c.getColumnIndexOrThrow(
+							ContextEntry.COLUMN_NAME_CONTEXT));
+					if (type.equals(ContextEntry.TYPE_LOCATION)) {
+						taskLocations.add(context);
+					} else {
+						taskActivities.add(context);
+					}
+				} while (c.moveToNext());
+			}
+			locations.put(t.getId(), taskLocations);
+			activities.put(t.getId(), taskActivities);
+		}
+		
+		// Get the address of the registered location.
 		Geocoder geocoder = new Geocoder(this);
 		List<Address> addresses = null;
 		try {
@@ -205,7 +250,24 @@ public class ContextService extends Service implements
 				}
 			}
 			
-			Toast.makeText(this, addressText, Toast.LENGTH_SHORT).show();
+			// Check if this address has been stored for this task before.
+			for (Task t : tasks) {
+				boolean newLocation = true;
+				for (String loc : locations.get(t.getId())) {
+					if (loc.equals(addressText)) {
+						newLocation = false;
+					}
+				}
+				// New location address (context) for this task, save to db.
+				if (newLocation) {
+					tasksDb.insertContext(t.getId(),
+							ContextEntry.TYPE_LOCATION, addressText);
+					new SaveContext(Installation.id(this) + " " + t.getId(), 
+							ContextEntry.TYPE_LOCATION, addressText).execute();
+				}
+			}
+			
+			
 		}
 	}
 

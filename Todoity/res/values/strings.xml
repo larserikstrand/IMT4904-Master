@@ -68,22 +68,34 @@
     <string name="pref_context_storage">Context Storage</string>
     <string name="pref_occupation_default">None</string>
     <string name="pref_context_storage_summ">Allow application to collect and store context information</string>
+    <string name="pref_undergraduate">Undergraduate student (Bachelor)</string>
+    <string name="pref_postgraduate">Postgraduate student (Master, Ph.D.)</string>
 
     <!-- Arrays -->
 
 
     <!-- Occupation task templates -->
+    
     <string-array name="undergraduate_tasks_array">
         <item>Attend lecture</item>
+        <item>Read</item>
         <item>Write report</item>
         <item>Do course exercises</item>
         <item>Meeting</item>
         <item>Group work</item>
+        <item>Practical work</item>
         <item>Other</item>
     </string-array>
     <string-array name="postgraduate_tasks_array">
-        <item>Write thesis</item>
+        <item>Attend lecture</item>
+        <item>Read</item>
+        <item>Write report</item>
+        <item>Do course exercises</item>
         <item>Meeting</item>
+        <item>Group work</item>
+        <item>Practical work</item>
+        <item>Experiment</item>
+        <item>Other</item>
     </string-array>
 
     <!-- Occupation types -->
