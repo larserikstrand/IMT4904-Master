@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"FWXGb4Q2eZqWRcG8B2Ixrr-vrqQ/J57SjH7-u8vdpDbuR5uGTQQ9O-o\"",
+ "etag": "\"OqxT57NU1DEATg4yJjzJs2FozZE/AW_MNyg6ztFn9GvpGTO3RV4E5mY\"",
  "discoveryVersion": "v1",
  "id": "taskentityendpoint:v1",
  "name": "taskentityendpoint",
@@ -102,6 +102,9 @@
     "category": {
      "type": "string"
     },
+    "date": {
+     "type": "string"
+    },
     "description": {
      "type": "string"
     },
@@ -129,8 +132,8 @@
      "type": "string"
     },
     "timeSpent": {
-     "type": "integer",
-     "format": "int32"
+     "type": "string",
+     "format": "int64"
     },
     "timeStarted": {
      "type": "string"

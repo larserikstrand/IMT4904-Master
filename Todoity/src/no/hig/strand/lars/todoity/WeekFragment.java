@@ -110,14 +110,16 @@ public class WeekFragment extends Fragment {
 			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
 			return true;
 		case R.id.delete_task:
-			new DeleteTask(new OnDeletionCallback() {
+			new DeleteTask(getActivity(), 
+					mTasks.get(mSelectedDate).get(mSelectedTask), 
+					new OnDeletionCallback() {
 				@Override
 				public void onDeletionDone() {
 					// Re-read tasks from database (maybe not the prettiest
 					//  solution, but certainly the easiest).
 					new LoadWeekListFromDatabase().execute();
 				}
-			}).execute(mTasks.get(mSelectedDate).get(mSelectedTask).getId());
+			}).execute();
 			return true;
 		}
 		return super.onContextItemSelected(item);
@@ -140,7 +142,8 @@ public class WeekFragment extends Fragment {
 	public void onDateSet(String date) {
 		if (! date.equals(mSelectedDate)) {
 			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
-			new MoveTaskToDate(task, date, new OnTaskMovedCallback() {
+			new MoveTaskToDate(getActivity(), task, date, 
+					new OnTaskMovedCallback() {
 				@Override
 				public void onTaskMoved() {
 					new LoadWeekListFromDatabase().execute();
@@ -161,6 +164,7 @@ public class WeekFragment extends Fragment {
 			
 			dates = new ArrayList<String>();
 			tasks = new HashMap<String, List<Task>>();
+			TasksDb tasksDb = TasksDb.getInstance(MainActivity.mContext);
 			
 			SimpleDateFormat formatter = 
 					new SimpleDateFormat("EEEE, MMM dd, yyyy");
@@ -170,7 +174,7 @@ public class WeekFragment extends Fragment {
 			for (int i = 0; i < NUMBER_OF_DAYS; i++) {
 				c.add(Calendar.DATE, 1);
 				date = formatter.format(c.getTime());
-				dateTasks = MainActivity.tasksDb.getTasksByDate(date);
+				dateTasks = tasksDb.getTasksByDate(date);
 				if (! dateTasks.isEmpty()) {
 					dates.add(date);
 					tasks.put(date, dateTasks);
@@ -191,7 +195,7 @@ public class WeekFragment extends Fragment {
 		protected void onPostExecute(Void result) {
 			ExpandableListView list = (ExpandableListView) mRootView
 					.findViewById(R.id.week_list);
-			mAdapter = new WeekListAdapter(getActivity(), dates, tasks);
+			mAdapter = new WeekListAdapter(MainActivity.mContext, dates, tasks);
 			list.setAdapter(mAdapter);
 		}
 	}
@@ -314,7 +318,7 @@ public class WeekFragment extends Fragment {
 						@Override
 						public void PositiveClick(DialogInterface dialog, 
 								int id) {
-							new DeleteList(new OnDeletionCallback() {
+							new DeleteList(getActivity(), new OnDeletionCallback() {
 								@Override
 								public void onDeletionDone() {
 									new LoadWeekListFromDatabase().execute();

@@ -136,6 +136,9 @@
           "id" : {
             "type" : "string"
           },
+          "date" : {
+            "type" : "string"
+          },
           "category" : {
             "type" : "string"
           },
@@ -158,7 +161,8 @@
             "type" : "string"
           },
           "timeSpent" : {
-            "type" : "integer"
+            "type" : "string",
+            "format" : "int64"
           },
           "fixedStart" : {
             "type" : "string"

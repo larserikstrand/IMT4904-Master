@@ -1,8 +1,9 @@
 package no.hig.strand.lars.todoity.utils;
 
-import no.hig.strand.lars.todoity.MainActivity;
 import no.hig.strand.lars.todoity.Task;
 import no.hig.strand.lars.todoity.TasksContract.ListEntry;
+import no.hig.strand.lars.todoity.TasksDb;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
 
@@ -20,12 +21,19 @@ public class DatabaseUtilities {
 	}
 	
 	
-	public static class UpdateTask extends AsyncTask<Task, Void, Void> {
+	
+	public static class UpdateTask extends AsyncTask<Void, Void, Void> {
+		TasksDb tasksDb;
+		Task task;
+		
+		public UpdateTask(Context context, Task task) {
+			this.task = task;
+			tasksDb = TasksDb.getInstance(context);
+		}
 
 		@Override
-		protected Void doInBackground(Task... params) {
-			Task task = params[0];
-			MainActivity.tasksDb.updateTask(task);
+		protected Void doInBackground(Void... params) {
+			tasksDb.updateTask(task);
 			return null;
 		}
 	}
@@ -33,37 +41,45 @@ public class DatabaseUtilities {
 	
 	
 	public static class DeleteList extends AsyncTask<String, Void, Void> {
-		private OnDeletionCallback callback;
-
-		public DeleteList(OnDeletionCallback callback) {
+		OnDeletionCallback callback;
+		TasksDb tasksDb;
+		
+		public DeleteList(Context context, OnDeletionCallback callback) {
+			tasksDb = TasksDb.getInstance(context);
 			this.callback = callback;
 		}
 
 		@Override
 		protected Void doInBackground(String... params) {
-			MainActivity.tasksDb.deleteListByDate(params[0]);
+			tasksDb.deleteListByDate(params[0]);
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void result) {
-			callback.onDeletionDone();
+			if (callback != null) {
+				callback.onDeletionDone();
+			}
 		}
 	}
 	
 	
 	
-	public static class DeleteTask extends AsyncTask<Integer, Void, Void> {	
+	public static class DeleteTask extends AsyncTask<Void, Void, Void> {	
 		private OnDeletionCallback callback;
+		TasksDb tasksDb;
+		Task task;
 		
-		public DeleteTask(OnDeletionCallback callback) {
+		public DeleteTask(Context context, Task task, 
+				OnDeletionCallback callback) {
+			this.task = task;
+			tasksDb = TasksDb.getInstance(context);
 			this.callback = callback;
 		}
 
 		@Override
-		protected Void doInBackground(Integer... params) {
-			int taskId = params[0];
-			MainActivity.tasksDb.deleteTaskById(taskId);
+		protected Void doInBackground(Void... params) {
+			tasksDb.deleteTaskById(task.getId());
 			return null;
 		}
 
@@ -77,13 +93,15 @@ public class DatabaseUtilities {
 	
 	public static class MoveTaskToDate extends AsyncTask<Void, Void, Void> {
 		private OnTaskMovedCallback callback;
+		private TasksDb tasksDb;
 		private Task task;
 		private String date;
 
-		public MoveTaskToDate(Task task, String date, 
+		public MoveTaskToDate(Context context, Task task, String date, 
 				OnTaskMovedCallback callback) {
 			this.callback = callback;
 			this.task = task;
+			tasksDb = TasksDb.getInstance(context);
 			this.date = date;
 		}
 
@@ -92,16 +110,16 @@ public class DatabaseUtilities {
 			// Move the task to the selected date. 
 			//  Create list on that date if none exist.
 			long listId = -1;
-			Cursor c = MainActivity.tasksDb.fetchListByDate(date);
+			Cursor c = tasksDb.fetchListByDate(date);
 			if (c.moveToFirst()) {
 				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
 			} else {
-				listId = MainActivity.tasksDb.insertList(date);
+				listId = tasksDb.insertList(date);
 			}
 			
 			// Remove old task and insert new one.
-			MainActivity.tasksDb.deleteTaskById(task.getId());
-			MainActivity.tasksDb.insertTask(listId, task);
+			tasksDb.deleteTaskById(task.getId());
+			tasksDb.insertTask(listId, task);
 			
 			return null;
 		}

@@ -71,7 +71,7 @@ public class TasksDb {
 		Cursor c1 = mDb.query(ListEntry.TABLE_NAME, 
 				new String[] {ListEntry._ID, ListEntry.COLUMN_NAME_DATE}, 
 				ListEntry.COLUMN_NAME_DATE + " = ?", 
-				new String[] {date},
+				new String[] { date },
 				null, null, null);
 		
 		// If the list is found, get the tasks.
@@ -91,6 +91,7 @@ public class TasksDb {
 					task = new Task();
 					task.setId(c1.getInt(c1.getColumnIndexOrThrow(
 							TaskEntry._ID)));
+					task.setDate(date);
 					task.setCategory(c1.getString(c1.getColumnIndexOrThrow(
 							TaskEntry.COLUMN_NAME_CATEGORY)));
 					task.setDescription(c1.getString(c1.getColumnIndexOrThrow(
@@ -155,6 +156,19 @@ public class TasksDb {
 				String taskId = c.getString(c.getColumnIndexOrThrow(
 						TaskEntry._ID));
 				task.setId(Integer.valueOf(taskId));
+				
+				// Find the date of the list the task is belonging to.
+				long listId = c.getLong(c.getColumnIndexOrThrow(
+						TaskEntry.COLUMN_NAME_LIST));
+				Cursor c1 = mDb.query(ListEntry.TABLE_NAME, null, 
+						ListEntry._ID + " = ?", 
+						new String[] { Long.toString(listId) },
+						null, null, null);
+				if (c1.moveToFirst()) {
+					task.setDate(c1.getString(c1.getColumnIndexOrThrow(
+							ListEntry.COLUMN_NAME_DATE)));
+				}
+				
 				task.setCategory(c.getString(c.getColumnIndexOrThrow(
 						TaskEntry.COLUMN_NAME_CATEGORY)));
 				task.setDescription(c.getString(c.getColumnIndexOrThrow(

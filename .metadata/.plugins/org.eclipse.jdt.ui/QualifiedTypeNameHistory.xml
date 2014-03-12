@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.Taskentityendpoint.Builder"/>
-<fullyQualifiedTypeName name="com.google.api.client.http.HttpRequestInitializer"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.Taskentityendpoint"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.CloudEndpointUtils"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.mtp.taskentityendpoint.model.TaskEntity"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TodayFragment.SaveToExternal"/>
-<fullyQualifiedTypeName name="android.view.MenuInflater"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.R.menu"/>
 <fullyQualifiedTypeName name="android.widget.CheckBox"/>
 <fullyQualifiedTypeName name="android.widget.CompoundButton.OnCheckedChangeListener"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TodayFragment.SetTaskFinishedStatus"/>
@@ -27,7 +19,6 @@
 <fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="android.util.SparseIntArray"/>
 <fullyQualifiedTypeName name="java.util.List"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.taskentityendpoint.model.TaskEntity"/>
 <fullyQualifiedTypeName name="android.util.SparseArray"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="javax.persistence.Entity"/>
@@ -47,17 +38,26 @@
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.AppEngineUtilities"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.AppEngineUtilities.SetTaskActive"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.Utilities.Installation"/>
-<fullyQualifiedTypeName name="java.util.Date"/>
 <fullyQualifiedTypeName name="java.util.Calendar"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.Utilities"/>
 <fullyQualifiedTypeName name="android.content.ContentValues"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TodayFragment.SetTaskTempTime"/>
-<fullyQualifiedTypeName name="android.os.AsyncTask"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.Task"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TasksDb"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TasksContract.TaskEntry"/>
 <fullyQualifiedTypeName name="android.database.DatabaseUtils"/>
-<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.DatabaseUtilities"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.DatabaseUtilities.UpdateTask"/>
+<fullyQualifiedTypeName name="java.util.Date"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.Utilities"/>
+<fullyQualifiedTypeName name="android.widget.LinearLayout"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.AppEngineUtilities.SaveTask"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.AppEngineUtilities.UpdateTask"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.taskentityendpoint.model.TaskEntity"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TasksContract.TaskEntry"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.TasksContract.ListEntry"/>
 <fullyQualifiedTypeName name="no.hig.strand.lars.todoity.MainActivity"/>
+<fullyQualifiedTypeName name="android.os.AsyncTask"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.DatabaseUtilities"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteList"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback"/>
+<fullyQualifiedTypeName name="no.hig.strand.lars.todoity.utils.Utilities.Installation"/>
 </qualifiedTypeNameHistroy>

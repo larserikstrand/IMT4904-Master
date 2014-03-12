@@ -52,17 +52,6 @@
         	android:textAppearance="?android:attr/textAppearanceSmall"
         	android:drawableTop="@drawable/ic_content_save" />
         
-        <Button android:id="@+id/discard_button"
-            android:layout_width="0dp"
-        	android:layout_height="wrap_content"
-        	android:layout_weight="1"
-        	android:paddingTop="5dp"
-        	android:paddingBottom="5dp"
-        	android:background="?android:attr/selectableItemBackground"
-        	android:text="@string/discard"
-        	android:textAppearance="?android:attr/textAppearanceSmall"
-        	android:drawableTop="@drawable/ic_content_discard" />
-        
     </LinearLayout>
     
 </LinearLayout>

@@ -112,8 +112,10 @@ public class Utilities {
 	
 	
 	@SuppressLint("SimpleDateFormat")
-	public static String dateToString(Date d) {
-		SimpleDateFormat formatter = new SimpleDateFormat("EEEE, MMM dd, yyyy");
+	public static String timeToString(long millis) {
+		Date d = new Date(millis);
+		SimpleDateFormat formatter = new SimpleDateFormat(
+				"EEEE, MMM dd, yyyy, HH:mm");
 		
 		return formatter.format(d.getTime());
 	}

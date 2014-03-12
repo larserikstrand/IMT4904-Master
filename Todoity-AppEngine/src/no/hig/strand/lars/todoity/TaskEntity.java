@@ -8,6 +8,7 @@ public class TaskEntity {
 	@Id
 	private String id;
 	
+	private String date;
 	private String category;
 	private String description;
 	private double latitude;
@@ -16,7 +17,7 @@ public class TaskEntity {
 	private boolean isActive;
 	private String timeStarted;
 	private String timeEnded;
-	private int timeSpent;
+	private long timeSpent;
 	private boolean isFinished;
 	
 	private String fixedStart;
@@ -29,6 +30,14 @@ public class TaskEntity {
 	
 	public void setId(String id) {
 		this.id = id;
+	}
+	
+	public String getDate() {
+		return date;
+	}
+	
+	public void setDate(String date) {
+		this.date = date;
 	}
 	
 	public String getCategory() {
@@ -95,7 +104,7 @@ public class TaskEntity {
 		this.timeEnded = timeEnded;
 	}
 	
-	public int getTimeSpent() {
+	public long getTimeSpent() {
 		return timeSpent;
 	}
 	

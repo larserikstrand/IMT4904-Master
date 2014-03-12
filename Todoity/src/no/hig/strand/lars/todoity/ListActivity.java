@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import no.hig.strand.lars.todoity.TasksContract.ListEntry;
 import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
-import no.hig.strand.lars.todoity.utils.Utilities;
-import no.hig.strand.lars.todoity.utils.Utilities.Installation;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -16,6 +16,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -39,6 +40,7 @@ public class ListActivity extends FragmentActivity {
 	
 	private ArrayList<Task> mTasks;
 	private TaskListAdapter mAdapter;
+	private TasksDb mTasksDb;
 	private String mDate;
 	private boolean mIsEditing;
 	private int mTempTaskNumber;
@@ -57,6 +59,7 @@ public class ListActivity extends FragmentActivity {
 		setupActionBar();
 		
 		mTasks = new ArrayList<Task>();
+		mTasksDb = TasksDb.getInstance(this);
 		mDate = "";
 		mIsEditing = false;
 		mTempTaskNumber = -1;
@@ -124,14 +127,6 @@ public class ListActivity extends FragmentActivity {
 			}
 		});
 		
-		button = (Button) findViewById(R.id.discard_button);
-		button.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				discardList();
-			}
-		});
-		
 		ListView listView = (ListView) findViewById(R.id.tasklist_list);
 		listView.setAdapter(mAdapter);
 	}
@@ -158,22 +153,6 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private void discardList() {
-		Utilities.showConfirmDialog(this, getString(R.string.confirm), 
-				getString(R.string.discard_list_message), 
-				new Utilities.ConfirmDialogListener() {
-			@Override
-			public void PositiveClick(DialogInterface dialog, int id) {
-				mTasks.clear();
-				mAdapter = new TaskListAdapter(ListActivity.this, mTasks);
-				ListView listView = (ListView) findViewById(R.id.tasklist_list);
-				listView.setAdapter(mAdapter);
-			}
-		});
-	}
-	
-	
-	
 	private void showExistingListDialog(ArrayList<Task> tasks) {
 		tempTasks = tasks;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -193,8 +172,7 @@ public class ListActivity extends FragmentActivity {
 				}
 				Button button = (Button) findViewById(R.id.date_button);
 				button.setText(mDate);
-				mAdapter = new TaskListAdapter(
-						ListActivity.this, mTasks);
+				mAdapter = new TaskListAdapter(ListActivity.this, mTasks);
 				ListView list = (ListView) findViewById(R.id.tasklist_list);
 				list.setAdapter(mAdapter);
 			}
@@ -204,23 +182,13 @@ public class ListActivity extends FragmentActivity {
 			public void onClick(DialogInterface dialog, int which) {
 				Button button = (Button) findViewById(R.id.date_button);
 				button.setText(mDate);
-				new DeleteExistingTask().execute(mDate);
+				new DatabaseUtilities.DeleteList(
+						ListActivity.this, null).execute(mDate);
 			}
 		});
 		
 		AlertDialog dialog = builder.create();
 		dialog.show();
-	}
-	
-	
-	
-	private void deleteExistingList(String date) {
-		TasksDb tasksDb;
-		tasksDb = new TasksDb(getApplicationContext());
-		tasksDb.open();
-		
-		tasksDb.deleteListByDate(date);
-		tasksDb.close();
 	}
 	
 	
@@ -233,6 +201,7 @@ public class ListActivity extends FragmentActivity {
 				Task task = data.getParcelableExtra(NewTaskActivity.TASK_EXTRA);
 				if (mIsEditing) {
 					mTasks.set(mTempTaskNumber, task);
+					mIsEditing = false;
 				} else {
 					mTasks.add(task);
 				}
@@ -286,25 +255,22 @@ public class ListActivity extends FragmentActivity {
 	
 	private class CheckListAvailabilityTask 
 			extends AsyncTask<String, Void, ArrayList<Task>> {
-		TasksDb tasksDb;
 		
 		@Override
 		protected ArrayList<Task> doInBackground(String... params) {
 			mDate = params[0];
-			tasksDb = new TasksDb(ListActivity.this);
-			tasksDb.open();
-			ArrayList<Task> tasks = tasksDb.getTasksByDate(mDate);
-			tasksDb.close();
+			ArrayList<Task> tasks = mTasksDb.getTasksByDate(mDate);
 			
 			return tasks;
 		}
 
 		@Override
 		protected void onPostExecute(ArrayList<Task> result) {
-			if (! result.isEmpty()) {
+			Button button = (Button) findViewById(R.id.date_button);
+			String date = button.getText().toString();
+			if (!mDate.equals(date) && ! result.isEmpty()) {
 				showExistingListDialog(result);
 			} else {
-				Button button = (Button) findViewById(R.id.date_button);
 				button.setText(mDate);
 			}
 		}
@@ -313,20 +279,7 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private class DeleteExistingTask 
-			extends AsyncTask<String, Void, Void> {
-		@Override
-		protected Void doInBackground(String... params) {
-			deleteExistingList(params[0]);
-			
-			return null;
-		}
-	}
-	
-	
-	
 	private class SaveTask extends AsyncTask<String, Void, Void> {
-		TasksDb tasksDb;
 		ProgressDialog dialog;
 		
 		@Override
@@ -339,19 +292,48 @@ public class ListActivity extends FragmentActivity {
 		
 		@Override
 		protected Void doInBackground(String... params) {
-			deleteExistingList(params[0]);
-			
 			// Save internally to SQLite database
-			tasksDb = new TasksDb(ListActivity.this);
-			tasksDb.open();
-			long listId = tasksDb.insertList(params[0]);
-			for (Task t : mTasks) {
-				Long taskId = tasksDb.insertTask(listId, t);
-				t.setAppEngineId(Installation.id(ListActivity.this) +
-						" " + taskId.toString());
-				new AppEngineUtilities.SaveTask().execute(t);
+			
+			// Get id of the current list or create new if not exists.
+			long listId;
+			boolean newList = true;
+			Cursor c = mTasksDb.fetchListByDate(params[0]);
+			if (c.moveToFirst()) {
+				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
+				newList = false;
+			} else {
+				listId = mTasksDb.insertList(params[0]);
 			}
-			tasksDb.close();
+			for (Task t : mTasks) {
+				// Task has no ID, it has not been inserted before. Insert it.
+				if (t.getId() == 0) {
+					long taskId = mTasksDb.insertTask(listId, t);
+					t.setId((int)taskId);
+					t.setDate(mDate);
+					// Save externally to AppEngine
+					new AppEngineUtilities.SaveTask(
+							ListActivity.this, t).execute();
+					
+				// If the task has an id, check if we are creating a new list 
+				//  or if the task belonged to an old list.
+				//  Delete the old task, and insert the new.
+				} else if (newList || ! mDate.equals(t.getDate())) {
+					mTasksDb.deleteTaskById(t.getId());
+					new AppEngineUtilities.RemoveTask(
+							ListActivity.this, t).execute();
+					long taskId = mTasksDb.insertTask(listId, t);
+					t.setId((int)taskId);
+					t.setDate(mDate);
+					// Save externally to AppEngine
+					new AppEngineUtilities.SaveTask(
+							ListActivity.this, t).execute();
+				} else {
+					mTasksDb.updateTask(t);
+					new AppEngineUtilities.UpdateTask(
+							ListActivity.this, t).execute();
+				}
+				
+			}
 			
 			return null;
 		}
@@ -359,7 +341,6 @@ public class ListActivity extends FragmentActivity {
 		@Override
 		protected void onPostExecute(Void result) {
 			dialog.dismiss();
-			//Toast.makeText(ListActivity.this, mTasks.get(0).getAppEngineId().toString(), Toast.LENGTH_LONG);
 			finish();
 		}
 	}
@@ -383,6 +364,10 @@ public class ListActivity extends FragmentActivity {
 			View rowView = inflater.inflate(R.layout.item_list_task,
 					parent, false);
 			rowView.setTag(position);
+			
+			if (tasks.get(position).isFinished()) {
+				return null;
+			}
 			
 			TextView taskText = (TextView) rowView.findViewById(R.id.task_text);
 			taskText.setText(tasks.get(position).getCategory() + ": "
@@ -422,6 +407,8 @@ public class ListActivity extends FragmentActivity {
 					listView.setAdapter(new TaskListAdapter(context, mTasks));
 				}
 			});
+			
+			
 			
 			return rowView;
 		}

@@ -175,7 +175,8 @@ public class NewTaskActivity extends FragmentActivity {
 		CheckBox checkBox = (CheckBox) findViewById(R.id.fixed_time_check);
 		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			public void onCheckedChanged(CompoundButton buttonView, 
+					boolean isChecked) {
 				Button fromButton = (Button) findViewById(R.id.from_button);
 				Button toButton = (Button) findViewById(R.id.to_button);
 				if (isChecked) {
@@ -398,11 +399,13 @@ public class NewTaskActivity extends FragmentActivity {
 	    public Filter getFilter() {
 	        Filter filter = new Filter() {
 	            @Override
-	            protected FilterResults performFiltering(CharSequence constraint) {
+	            protected FilterResults performFiltering(
+	            		CharSequence constraint) {
 	                FilterResults filterResults = new FilterResults();
 	                if (constraint != null) {
 	                    // Retrieve the autocomplete results.
-	                    resultList = Utilities.autocomplete(constraint.toString());
+	                    resultList = Utilities.autocomplete(
+	                    		constraint.toString());
 
 	                    // Assign the data to the FilterResults
 	                    filterResults.values = resultList;
@@ -412,7 +415,8 @@ public class NewTaskActivity extends FragmentActivity {
 	            }
 
 	            @Override
-	            protected void publishResults(CharSequence constraint, FilterResults results) {
+	            protected void publishResults(CharSequence constraint,
+	            		FilterResults results) {
 	                if (results != null && results.count > 0) {
 	                    notifyDataSetChanged();
 	                }

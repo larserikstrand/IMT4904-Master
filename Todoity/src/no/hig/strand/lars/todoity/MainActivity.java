@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -47,8 +48,9 @@ public class MainActivity extends FragmentActivity {
 
 	private TabsPagerAdapter mTabsPagerAdapter;
 	private ViewPager mViewPager;
+	private TasksDb mTasksDb;
 	
-	public static TasksDb tasksDb;
+	public static Context mContext;
 	
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
@@ -78,7 +80,8 @@ public class MainActivity extends FragmentActivity {
         	showWelcomeDialog();
         }
         
-        tasksDb = TasksDb.getInstance(this);
+        mContext = this;
+        mTasksDb = TasksDb.getInstance(this);
         mTabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mTabsPagerAdapter);
@@ -210,7 +213,7 @@ public class MainActivity extends FragmentActivity {
 	
 	public void startTask() {
 		if (isServicesAvailable()) {
-			ArrayList<Task> activeTasks = tasksDb.getActiveTasks();
+			ArrayList<Task> activeTasks = mTasksDb.getActiveTasks();
 			if (activeTasks.size() <= 1) {
 				Intent intent = new Intent(this, ContextService.class);
 				startService(intent);
@@ -222,7 +225,7 @@ public class MainActivity extends FragmentActivity {
 	
 	
 	public void pauseTask() {
-		ArrayList<Task> activeTasks = tasksDb.getActiveTasks();
+		ArrayList<Task> activeTasks = mTasksDb.getActiveTasks();
 		if (activeTasks.isEmpty()) {
 			Intent intent = new Intent(this, ContextService.class);
 			stopService(intent);

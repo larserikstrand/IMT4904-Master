@@ -8,6 +8,8 @@ import no.hig.strand.lars.todoity.contextentityendpoint.Contextentityendpoint;
 import no.hig.strand.lars.todoity.contextentityendpoint.model.ContextEntity;
 import no.hig.strand.lars.todoity.taskentityendpoint.Taskentityendpoint;
 import no.hig.strand.lars.todoity.taskentityendpoint.model.TaskEntity;
+import no.hig.strand.lars.todoity.utils.Utilities.Installation;
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -22,11 +24,17 @@ import com.google.api.client.json.jackson.JacksonFactory;
 public final class AppEngineUtilities {
 	
 	
-	public static class SaveTask extends AsyncTask<Task, Void, Long> {
+	public static class SaveTask extends AsyncTask<Void, Void, Void> {
+		Task task;
+		Context context;
+		
+		public SaveTask(Context context, Task task) {
+			this.task = task;
+			this.context = context;
+		}
 		
 		@Override
-		protected Long doInBackground(Task... params) {
-			Task task = params[0];
+		protected Void doInBackground(Void... params) {
 			// Save task externally to AppEngine
 			Taskentityendpoint.Builder endpointBuilder = 
 					new Taskentityendpoint.Builder(
@@ -36,19 +44,21 @@ public final class AppEngineUtilities {
 					.updateBuilder(endpointBuilder).build();
 			
 			TaskEntity taskEntity = new TaskEntity();
-			taskEntity.setId(task.getAppEngineId())
-					.setCategory(task.getCategory())
-					.setDescription(task.getDescription())
-					.setLatitude(task.getLocation().latitude)
-					.setLongitude(task.getLocation().longitude)
-					.setAddress(task.getAddress())
-					.setActive(task.isActive())
-					.setTimeStarted(task.getTimeStarted())
-					.setTimeEnded(task.getTimeEnded())
-					.setTimeSpent(task.getTimeSpent())
-					.setFinished(task.isFinished())
-					.setFixedStart(task.getFixedStart())
-					.setFixedEnd(task.getFixedEnd());
+			String id = Installation.id(context) + " " + task.getId();
+			taskEntity.setId(id)
+			.setDate(task.getDate())
+			.setCategory(task.getCategory())
+			.setDescription(task.getDescription())
+			.setLatitude(task.getLocation().latitude)
+			.setLongitude(task.getLocation().longitude)
+			.setAddress(task.getAddress())
+			.setActive(task.isActive())
+			.setTimeStarted(Utilities.timeToString(task.getTimeStarted()))
+			.setTimeEnded(Utilities.timeToString(task.getTimeEnded()))
+			.setTimeSpent(task.getTimeSpent())
+			.setFinished(task.isFinished())
+			.setFixedStart(task.getFixedStart())
+			.setFixedEnd(task.getFixedEnd());
 			try {
 				taskEntity = endpoint.insertTaskEntity(taskEntity).execute();
 			} catch (IOException e) {
@@ -87,36 +97,46 @@ public final class AppEngineUtilities {
 	
 	/**
 	 * Updates a task in Google AppEngine. The task to be updated is passed
-	 * as a variable to execute.
+	 * as a variable the constructor.
 	 * @author LarsErik
 	 *
 	 */
-	public static class UpdateTask extends AsyncTask<Task, Void, Void> {
+	public static class UpdateTask extends AsyncTask<Void, Void, Void> {
+		Task task;
+		Context context;
+		
+		public UpdateTask(Context context, Task task) {
+			this.task = task;
+			this.context = context;
+		}
 		
 		@Override
-		protected Void doInBackground(Task... params) {
-			Task task = params[0];
+		protected Void doInBackground(Void... params) {
 			Taskentityendpoint.Builder endpointBuilder = 
 					new Taskentityendpoint.Builder(
 							AndroidHttp.newCompatibleTransport(), 
 							new JacksonFactory(), null);
 			Taskentityendpoint endpoint = CloudEndpointUtils
 					.updateBuilder(endpointBuilder).build();
+			
+			String id = Installation.id(context) + " " + task.getId();
+			TaskEntity taskEntity = new TaskEntity();
+			taskEntity.setId(id)
+			.setDate(task.getDate())
+			.setCategory(task.getCategory())
+			.setDescription(task.getDescription())
+			.setLatitude(task.getLocation().latitude)
+			.setLongitude(task.getLocation().longitude)
+			.setAddress(task.getAddress())
+			.setActive(task.isActive())
+			.setTimeStarted(Utilities.timeToString(task.getTimeStarted()))
+			.setTimeEnded(Utilities.timeToString(task.getTimeEnded()))
+			.setTimeSpent(task.getTimeSpent())
+			.setFinished(task.isFinished())
+			.setFixedStart(task.getFixedStart())
+			.setFixedEnd(task.getFixedEnd());
+			
 			try {
-				TaskEntity taskEntity = endpoint.getTaskEntity(
-						task.getAppEngineId()).execute();
-				taskEntity.setCategory(task.getCategory())
-				.setDescription(task.getDescription())
-				.setLatitude(task.getLocation().latitude)
-				.setLongitude(task.getLocation().longitude)
-				.setAddress(task.getAddress())
-				.setActive(task.isActive())
-				.setTimeStarted(task.getTimeStarted())
-				.setTimeEnded(task.getTimeEnded())
-				.setTimeSpent(task.getTimeSpent())
-				.setFinished(task.isFinished())
-				.setFixedStart(task.getFixedStart())
-				.setFixedEnd(task.getFixedEnd());
 				endpoint.updateTaskEntity(taskEntity).execute();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -127,11 +147,18 @@ public final class AppEngineUtilities {
 	
 	
 	
-	public static class RemoveTask extends AsyncTask<String, Void, Void> {
+	public static class RemoveTask extends AsyncTask<Void, Void, Void> {
+		Task task;
+		Context context;
+		
+		public RemoveTask(Context context, Task task) {
+			this.task = task;
+			this.context = context;
+		}
 		
 		@Override
-		protected Void doInBackground(String... params) {
-			String taskId = params[0];
+		protected Void doInBackground(Void... params) {
+			String id = Installation.id(context) + " " + task.getId();
 			Taskentityendpoint.Builder endpointBuilder = 
 					new Taskentityendpoint.Builder(
 							AndroidHttp.newCompatibleTransport(), 
@@ -139,7 +166,7 @@ public final class AppEngineUtilities {
 			Taskentityendpoint endpoint = CloudEndpointUtils
 					.updateBuilder(endpointBuilder).build();
 			try {
-				endpoint.removeTaskEntity(taskId).execute();
+				endpoint.removeTaskEntity(id).execute();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -11,8 +11,7 @@ public class Task implements Parcelable {
 
 	private int mId;
 	
-	private String mAppEngineId;
-	
+	private String mDate;
 	private String mCategory;
 	private String mDescription;
 	private LatLng mLocation;
@@ -20,12 +19,12 @@ public class Task implements Parcelable {
 	// Whether or not the task is currently in progress
 	private boolean mIsActive;
 	// Temporary time in milliseconds for the task
-	private int mTempStart;
+	private long mTempStart;
 	// Actual times for the task
-	private String mTimeStarted;
-	private String mTimeEnded;
+	private long mTimeStarted;
+	private long mTimeEnded;
 	// Total time spent on task in milliseconds.
-	private int mTimeSpent;
+	private long mTimeSpent;
 	// Whether or not the task is finished (i.e. should sometimes not be displayed).
 	private boolean mIsFinished;
 	
@@ -35,15 +34,15 @@ public class Task implements Parcelable {
 	
 	public Task() {
 		mId = 0;
-		mAppEngineId = "";
+		mDate = "";
 		mCategory = "";
 		mDescription = "";
 		mLocation = new LatLng(0, 0);
 		mAddress = "";
 		mIsActive = false;
 		mTempStart = 0;
-		mTimeStarted = "";
-		mTimeEnded = "";
+		mTimeStarted = 0;
+		mTimeEnded = 0;
 		mTimeSpent = 0;
 		mIsFinished = false;
 		
@@ -69,15 +68,17 @@ public class Task implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeInt(mId);
+		dest.writeString(mDate);
 		dest.writeString(mCategory);
 		dest.writeString(mDescription);
 		dest.writeParcelable(mLocation, flags);
 		dest.writeString(mAddress);
 		dest.writeInt((int) (mIsActive ? 1 : 0));
-		dest.writeInt(mTempStart);
-		dest.writeString(mTimeStarted);
-		dest.writeString(mTimeEnded);
-		dest.writeInt(mTimeSpent);
+		dest.writeLong(mTempStart);
+		dest.writeLong(mTimeStarted);
+		dest.writeLong(mTimeEnded);
+		dest.writeLong(mTimeSpent);
+		dest.writeInt((int) (mIsFinished ? 1 : 0));
 		dest.writeString(mFixedStart);
 		dest.writeString(mFixedEnd);
 	}
@@ -86,15 +87,17 @@ public class Task implements Parcelable {
 	
 	private void readFromParcel(Parcel in) {
 		mId = in.readInt();
+		mDate = in.readString();
 		mCategory = in.readString();
 		mDescription = in.readString();
 		mLocation = in.readParcelable(LatLng.class.getClassLoader());
 		mAddress = in.readString();
 		mIsActive = in.readInt() != 0;
-		mTempStart = in.readInt();
-		mTimeStarted = in.readString();
-		mTimeEnded = in.readString();
-		mTimeSpent = in.readInt();
+		mTempStart = in.readLong();
+		mTimeStarted = in.readLong();
+		mTimeEnded = in.readLong();
+		mTimeSpent = in.readLong();
+		mIsFinished = in.readInt() != 0;
 		mFixedStart = in.readString();
 		mFixedEnd = in.readString();
 	}
@@ -131,18 +134,15 @@ public class Task implements Parcelable {
 	
 	
 	
-	/**
-	 * To be used solely for AppEngine calls.
-	 * @return
-	 */
-	public String getAppEngineId() {
-		return mAppEngineId;
+	// Used for AppEngine purposes.
+	public String getDate() {
+		return mDate;
 	}
 	
 	
 	
-	public void setAppEngineId(String appEngineId) {
-		mAppEngineId = appEngineId;
+	public void setDate(String date) {
+		mDate = date;
 	}
 	
 	
@@ -207,55 +207,55 @@ public class Task implements Parcelable {
 	
 	
 	
-	public int getTempStart() {
+	public long getTempStart() {
 		return mTempStart;
 	}
 	
 	
 	
-	public void setTempStart(int start) {
+	public void setTempStart(long start) {
 		mTempStart = start;
 	}
 	
 	
 	
-	public String getTimeStarted() {
+	public long getTimeStarted() {
 		return mTimeStarted;
 	}
 
 	
 	
-	public void setTimeStarted(String timeStarted) {
+	public void setTimeStarted(long timeStarted) {
 		mTimeStarted = timeStarted;
 	}
 	
 	
 	
-	public String getTimeEnded() {
+	public long getTimeEnded() {
 		return mTimeEnded;
 	}
 
 	
 	
-	public void setTimeEnded(String timeEnded) {
+	public void setTimeEnded(long timeEnded) {
 		mTimeEnded = timeEnded;
 	}
 	
 	
 	
-	public int getTimeSpent() {
+	public long getTimeSpent() {
 		return mTimeSpent;
 	}
 	
 	
 	
-	public void setTimeSpent(int timeSpent) {
+	public void setTimeSpent(long timeSpent) {
 		mTimeSpent = timeSpent;
 	}
 	
 	
 	
-	public void updateTimeSpent(int time) {
+	public void updateTimeSpent(long time) {
 		mTimeSpent += time;
 	}
 	

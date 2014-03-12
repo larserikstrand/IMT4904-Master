@@ -108,12 +108,14 @@ public class AllTasksFragment extends Fragment {
 			dpf.show(getActivity().getSupportFragmentManager(), "datePicker");
 			return true;
 		case R.id.delete_task:
-			new DeleteTask(new OnDeletionCallback() {
+			new DeleteTask(getActivity(), 
+					mTasks.get(mSelectedDate).get(mSelectedTask), 
+					new OnDeletionCallback() {
 				@Override
 				public void onDeletionDone() {
 					new LoadAllTasksFromDatabase().execute();
 				}
-			}).execute(mTasks.get(mSelectedDate).get(mSelectedTask).getId());
+			}).execute();
 			return true;
 		}
 		return super.onContextItemSelected(item);
@@ -136,7 +138,8 @@ public class AllTasksFragment extends Fragment {
 	public void onDateSet(String date) {
 		if (! date.equals(mSelectedDate)) {
 			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
-			new MoveTaskToDate(task, date, new OnTaskMovedCallback() {
+			new MoveTaskToDate(getActivity(), task, date, 
+					new OnTaskMovedCallback() {
 				@Override
 				public void onTaskMoved() {
 					new LoadAllTasksFromDatabase().execute();
@@ -153,17 +156,18 @@ public class AllTasksFragment extends Fragment {
 
 		@Override
 		protected Void doInBackground(Void... params) {
+			TasksDb tasksDb = TasksDb.getInstance(MainActivity.mContext);
 			dates = new ArrayList<String>();
 			tasks = new HashMap<String, List<Task>>();
 			String date = "";
 			List<Task> dateTasks;
 			
-			Cursor c = MainActivity.tasksDb.fetchLists();
+			Cursor c = tasksDb.fetchLists();
 			if (c.moveToFirst()) {
 				do {
 					date = c.getString(c.getColumnIndexOrThrow(
 							ListEntry.COLUMN_NAME_DATE));
-					dateTasks = MainActivity.tasksDb.getTasksByDate(date);
+					dateTasks = tasksDb.getTasksByDate(date);
 					if (! dateTasks.isEmpty()) {
 						dates.add(date);
 						tasks.put(date, dateTasks);
@@ -185,7 +189,8 @@ public class AllTasksFragment extends Fragment {
 		protected void onPostExecute(Void result) {
 			ExpandableListView list = (ExpandableListView) mRootView
 					.findViewById(R.id.all_tasks_list);
-			mAdapter = new AllTasksListAdapter(getActivity(), dates, tasks);
+			mAdapter = new AllTasksListAdapter(
+					MainActivity.mContext, dates, tasks);
 			list.setAdapter(mAdapter);
 		}
 	}
@@ -334,7 +339,8 @@ public class AllTasksFragment extends Fragment {
 						@Override
 						public void PositiveClick(DialogInterface dialog, 
 								int id) {
-							new DeleteList(new OnDeletionCallback() {
+							new DeleteList(getActivity(), 
+									new OnDeletionCallback() {
 								@Override
 								public void onDeletionDone() {
 									new LoadAllTasksFromDatabase().execute();
