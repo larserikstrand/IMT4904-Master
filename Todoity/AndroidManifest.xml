@@ -80,6 +80,10 @@
             android:label="@string/app_name" 
             android:name="no.hig.strand.lars.todoity.services.ActivityRecognitionIntentService"/>
         <service android:name="no.hig.strand.lars.todoity.GCMIntentService"/>
+        <service android:name="no.hig.strand.lars.todoity.services.GeofenceService"/>
+        <service android:exported="false" 
+            android:label="@string/app_name" 
+            android:name="no.hig.strand.lars.todoity.services.GeofenceTransitionIntentService"/>
         
         <receiver android:name="no.hig.strand.lars.todoity.broadcastreceivers.BootReceiver">
             <intent-filter>

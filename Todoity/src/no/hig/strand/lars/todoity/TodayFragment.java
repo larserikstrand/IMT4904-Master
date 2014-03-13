@@ -119,6 +119,7 @@ public class TodayFragment extends Fragment {
 					ListView listView = (ListView) mRootView
 							.findViewById(R.id.tasks_list);
 					listView.setAdapter(mAdapter);
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 			return true;
@@ -185,6 +186,7 @@ public class TodayFragment extends Fragment {
 										.findViewById(R.id.delete_button);
 								edit.setEnabled(false);
 								delete.setEnabled(false);
+								((MainActivity)getActivity()).updateGeofences();
 							}
 						}).execute(date);
 					}
@@ -204,6 +206,7 @@ public class TodayFragment extends Fragment {
 		task.setTempStart(timeStart);
 		new DatabaseUtilities.UpdateTask(getActivity(), task).execute();
 		new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
+		((MainActivity)getActivity()).updateGeofences();
 		
 		if (getActivity() instanceof MainActivity) {
 			MainActivity activity = (MainActivity) getActivity();
@@ -234,6 +237,7 @@ public class TodayFragment extends Fragment {
 		
 		new DatabaseUtilities.UpdateTask(getActivity(), task).execute();
 		new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
+		((MainActivity)getActivity()).updateGeofences();
 		
 		if (getActivity() instanceof MainActivity) {
 			MainActivity activity = (MainActivity) getActivity();
@@ -255,6 +259,7 @@ public class TodayFragment extends Fragment {
 					ListView listView = (ListView) mRootView
 							.findViewById(R.id.tasks_list);
 					listView.setAdapter(mAdapter);
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 		}
@@ -384,6 +389,7 @@ public class TodayFragment extends Fragment {
 						locationText.setPaintFlags(locationText.getPaintFlags() 
 								& (~Paint.STRIKE_THRU_TEXT_FLAG));
 						button.setEnabled(true);
+						((MainActivity)getActivity()).updateGeofences();
 					}
 				}
 			});

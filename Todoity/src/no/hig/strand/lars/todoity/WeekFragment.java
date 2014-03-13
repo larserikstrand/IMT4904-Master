@@ -118,6 +118,7 @@ public class WeekFragment extends Fragment {
 					// Re-read tasks from database (maybe not the prettiest
 					//  solution, but certainly the easiest).
 					new LoadWeekListFromDatabase().execute();
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 			return true;
@@ -147,6 +148,7 @@ public class WeekFragment extends Fragment {
 				@Override
 				public void onTaskMoved() {
 					new LoadWeekListFromDatabase().execute();
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 		}
@@ -322,6 +324,7 @@ public class WeekFragment extends Fragment {
 								@Override
 								public void onDeletionDone() {
 									new LoadWeekListFromDatabase().execute();
+									((MainActivity)getActivity()).updateGeofences();
 								}
 							}).execute(mSelectedDate);
 						}

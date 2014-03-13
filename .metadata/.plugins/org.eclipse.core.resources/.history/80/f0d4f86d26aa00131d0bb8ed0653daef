@@ -1,0 +1,17 @@
+package no.hig.strand.lars.todoity.services;
+
+import android.app.IntentService;
+import android.content.Intent;
+
+public class GeofenceTransitionIntentService extends IntentService {
+
+	public GeofenceTransitionIntentService() {
+		super("GeofenceTransitionService");
+	}
+	
+	@Override
+	protected void onHandleIntent(Intent intent) {
+		
+	}
+
+}

@@ -114,7 +114,7 @@ public class ContextService extends Service implements
 		setupClientsIfNeeded();
 		
 		if (! locationClient.isConnected() ||
-				locationClient.isConnecting() &&
+				! locationClient.isConnecting() &&
 				! locationInProgress) {
 			locationInProgress = true;
 			locationClient.connect();
@@ -139,9 +139,10 @@ public class ContextService extends Service implements
         PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
         
         final Notification note = new NotificationCompat.Builder(this)
-                .setContentTitle(getString(R.string.service_notification_title))
+                .setContentTitle(
+                		getString(R.string.contextservice_notification_title))
                 .setContentText(
-                		getString(R.string.service_notification_message))
+                		getString(R.string.contextservice_notification_message))
                 .setSmallIcon(R.drawable.servicerunninganim)
                 .setContentIntent(pi)
                 .build();

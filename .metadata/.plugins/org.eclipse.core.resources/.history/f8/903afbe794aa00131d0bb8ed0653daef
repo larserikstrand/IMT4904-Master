@@ -1,0 +1,83 @@
+package no.hig.strand.lars.todoity.services;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import no.hig.strand.lars.todoity.MainActivity;
+import no.hig.strand.lars.todoity.R;
+import no.hig.strand.lars.todoity.Task;
+import no.hig.strand.lars.todoity.TasksDb;
+import android.app.IntentService;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.LocationClient;
+
+public class GeofenceTransitionIntentService extends IntentService {
+	
+	private TasksDb mTasksDb;
+	
+	public GeofenceTransitionIntentService() {
+		super("GeofenceTransitionService");
+		mTasksDb = TasksDb.getInstance(this);
+	}
+	
+	@Override
+	protected void onHandleIntent(Intent intent) {
+		if (LocationClient.hasError(intent)) {
+			int errorCode = LocationClient.getErrorCode(intent);
+			Log.e("GeofenceTransitionIntentService", 
+					"Location Services error: " + Integer.toString(errorCode));
+		} else {
+			int transitionType = LocationClient.getGeofenceTransition(intent);
+			if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER) {
+				// Get the geofences that were triggered (likely only one).
+				List<Geofence> triggerList = 
+						LocationClient.getTriggeringGeofences(intent);
+				List<String> triggerIds = new ArrayList<String>();
+				for (Geofence geofence : triggerList) {
+					triggerIds.add(geofence.getRequestId());
+				}
+				pushNotification(triggerIds);
+				
+			} else {
+				Log.e("GeofenceTransitionIntentService", 
+						"Geofence transition error: " + 
+						Integer.toString(transitionType));
+			}
+		}
+	}
+	
+	
+	
+	private void pushNotification(List<String> ids) {
+		Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | 
+        		Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
+        
+        NotificationCompat.Builder builder = 
+        		new NotificationCompat.Builder(this);
+        builder.setContentTitle(getString(R.string.app_name));
+        if (ids.size() > 1) {
+        	builder.setContentText(getString(
+        			R.string.geofenceservice_multiple_entered));
+        } else {
+        	Task task = mTasksDb.getTaskById(Integer.valueOf(ids.get(0)));
+        	builder.setContentText(
+        			getString(R.string.geofenceservice_single_entered1) + " " +
+        			task.getCategory() + ": " + task.getDescription() + ". " + 
+        			getString(R.string.geofenceservice_single_entered2) );
+        }
+        builder.setSmallIcon(android.R.drawable.ic_popup_sync);
+        builder.setContentIntent(pi);
+		final Notification note = builder.build();
+		note.flags |= Notification.FLAG_SHOW_LIGHTS;
+		
+	}
+
+}

@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import no.hig.strand.lars.todoity.TasksContract.ListEntry;
+import no.hig.strand.lars.todoity.services.GeofenceService;
 import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
 import android.annotation.SuppressLint;
@@ -340,6 +341,8 @@ public class ListActivity extends FragmentActivity {
 
 		@Override
 		protected void onPostExecute(Void result) {
+			Intent intent = new Intent(ListActivity.this, GeofenceService.class);
+			startService(intent);
 			dialog.dismiss();
 			finish();
 		}

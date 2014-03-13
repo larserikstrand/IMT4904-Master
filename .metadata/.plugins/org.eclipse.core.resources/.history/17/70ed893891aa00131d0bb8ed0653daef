@@ -1,0 +1,13 @@
+package no.hig.strand.lars.todoity;
+
+public class TaskGeofence {
+
+	public class SimpleGeofence {
+		private final String mId;
+		private final double mLatitude;
+		private final double mLongitude;
+		private final float mRadius;
+		private long mExpirationDuration;
+		private int mTransitionType;
+	}
+}

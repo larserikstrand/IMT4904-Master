@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import no.hig.strand.lars.todoity.services.ContextService;
+import no.hig.strand.lars.todoity.services.GeofenceService;
 import no.hig.strand.lars.todoity.utils.Utilities.ErrorDialogFragment;
 import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.annotation.SuppressLint;
@@ -230,6 +231,13 @@ public class MainActivity extends FragmentActivity {
 			Intent intent = new Intent(this, ContextService.class);
 			stopService(intent);
 		}
+	}
+	
+	
+	
+	public void updateGeofences() {
+		Intent intent = new Intent(this, GeofenceService.class);
+		startService(intent);
 	}
 	
 	

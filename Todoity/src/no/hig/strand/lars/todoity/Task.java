@@ -32,6 +32,9 @@ public class Task implements Parcelable {
 	private String mFixedStart;
 	private String mFixedEnd;
 	
+	private enum Category { ADD, PAUSE };
+	private Category mCat = Category.ADD;
+	
 	public Task() {
 		mId = 0;
 		mDate = "";

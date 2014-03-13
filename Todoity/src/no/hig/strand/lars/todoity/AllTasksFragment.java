@@ -114,6 +114,7 @@ public class AllTasksFragment extends Fragment {
 				@Override
 				public void onDeletionDone() {
 					new LoadAllTasksFromDatabase().execute();
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 			return true;
@@ -143,6 +144,7 @@ public class AllTasksFragment extends Fragment {
 				@Override
 				public void onTaskMoved() {
 					new LoadAllTasksFromDatabase().execute();
+					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
 		}
@@ -344,6 +346,7 @@ public class AllTasksFragment extends Fragment {
 								@Override
 								public void onDeletionDone() {
 									new LoadAllTasksFromDatabase().execute();
+									((MainActivity)getActivity()).updateGeofences();
 								}
 							}).execute(mSelectedDate);
 						}

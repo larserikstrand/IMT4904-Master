@@ -61,8 +61,11 @@
     <string name="about_message">Todoity is developed as a Master thesis project at Gjøvik University College. It\'s purpose is not only to keep track of your tasks but also to gather contextual information as you do the tasks in order to give you future task recommendations.</string>
     
     <!-- Service -->
-    <string name="service_notification_title">MTP Context Service:</string>
-    <string name="service_notification_message">Collecting contexts</string>
+    <string name="contextservice_notification_title">Todoity Context Service:</string>
+    <string name="contextservice_notification_message">Collecting contexts</string>
+    <string name="geofenceservice_single_entered1">You are close to the task: </string>
+    <string name="geofenceservice_single_entered2">Do you want to do this task now?</string>
+    <string name="geofenceservice_multiple_entered">You are close to several tasks. Do you want to do these now?</string>
 
     <!-- Preferences -->
     <string name="pref_context_storage">Context Storage</string>

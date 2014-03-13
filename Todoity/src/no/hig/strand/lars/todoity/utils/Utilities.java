@@ -140,6 +140,19 @@ public class Utilities {
 	
 	
 	@SuppressLint("SimpleDateFormat")
+	public static long getTimeOfDay(long time) {
+		Calendar c = Calendar.getInstance();
+		c.setTimeInMillis(time);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		return time - c.getTimeInMillis();
+	}
+	
+	
+	
+	@SuppressLint("SimpleDateFormat")
 	public static class DateComparator implements Comparator<String> {
 		@Override
 		public int compare(String lhs, String rhs) {

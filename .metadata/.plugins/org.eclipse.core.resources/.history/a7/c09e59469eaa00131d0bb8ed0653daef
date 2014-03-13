@@ -1,0 +1,7 @@
+package no.hig.strand.lars.todoity.services;
+
+import android.app.Service;
+
+public class RecommenderService extends Service {
+
+}
