@@ -16,6 +16,7 @@ public class Task implements Parcelable {
 	private String mDescription;
 	private LatLng mLocation;
 	private String mAddress;
+	private int mPriority;
 	// Whether or not the task is currently in progress
 	private boolean mIsActive;
 	// Temporary time in milliseconds for the task
@@ -32,8 +33,6 @@ public class Task implements Parcelable {
 	private String mFixedStart;
 	private String mFixedEnd;
 	
-	private enum Category { ADD, PAUSE };
-	private Category mCat = Category.ADD;
 	
 	public Task() {
 		mId = 0;
@@ -42,6 +41,7 @@ public class Task implements Parcelable {
 		mDescription = "";
 		mLocation = new LatLng(0, 0);
 		mAddress = "";
+		mPriority = 0;
 		mIsActive = false;
 		mTempStart = 0;
 		mTimeStarted = 0;
@@ -76,6 +76,7 @@ public class Task implements Parcelable {
 		dest.writeString(mDescription);
 		dest.writeParcelable(mLocation, flags);
 		dest.writeString(mAddress);
+		dest.writeInt(mPriority);
 		dest.writeInt((int) (mIsActive ? 1 : 0));
 		dest.writeLong(mTempStart);
 		dest.writeLong(mTimeStarted);
@@ -95,6 +96,7 @@ public class Task implements Parcelable {
 		mDescription = in.readString();
 		mLocation = in.readParcelable(LatLng.class.getClassLoader());
 		mAddress = in.readString();
+		mPriority = in.readInt();
 		mIsActive = in.readInt() != 0;
 		mTempStart = in.readLong();
 		mTimeStarted = in.readLong();
@@ -194,6 +196,18 @@ public class Task implements Parcelable {
 	
 	public void setAddress(String address) {
 		mAddress = address;
+	}
+	
+	
+	
+	public int getPriority() {
+		return mPriority;
+	}
+	
+	
+	
+	public void setPriority(int priority) {
+		mPriority = priority;
 	}
 	
 	
@@ -307,6 +321,16 @@ public class Task implements Parcelable {
 			String task2 = rhs.getCategory() + ": " + rhs.getDescription();
 			return task1.compareTo(task2);
 		}
+	}
+	
+	
+	
+	public static class TaskPriorityComparator implements Comparator<Task> {
+		@Override
+		public int compare(Task lhs, Task rhs) {
+			return lhs.getPriority() - rhs.getPriority();
+		}
+		
 	}
 	
 }

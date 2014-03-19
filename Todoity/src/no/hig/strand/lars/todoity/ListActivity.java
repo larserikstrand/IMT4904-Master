@@ -5,25 +5,23 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import no.hig.strand.lars.todoity.TasksContract.ListEntry;
-import no.hig.strand.lars.todoity.services.GeofenceService;
 import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
+import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -35,20 +33,14 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class ListActivity extends FragmentActivity {
 	
 	private ArrayList<Task> mTasks;
 	private TaskListAdapter mAdapter;
-	private TasksDb mTasksDb;
 	private String mDate;
 	private boolean mIsEditing;
 	private int mTempTaskNumber;
-	
-	// Holding temporary tasks. Used when checking for already existing tasks.
-	//  (Should probably do this some other way).
-	private ArrayList<Task> tempTasks; 
 	
 	public static final int TASK_REQUEST = 1;
 
@@ -60,7 +52,6 @@ public class ListActivity extends FragmentActivity {
 		setupActionBar();
 		
 		mTasks = new ArrayList<Task>();
-		mTasksDb = TasksDb.getInstance(this);
 		mDate = "";
 		mIsEditing = false;
 		mTempTaskNumber = -1;
@@ -68,8 +59,13 @@ public class ListActivity extends FragmentActivity {
 		if (data.hasExtra(MainActivity.TASKS_EXTRA)) {
 			mTasks = data.getParcelableArrayListExtra(MainActivity.TASKS_EXTRA);
 			mDate = data.getStringExtra(MainActivity.DATE_EXTRA);
+			mAdapter = new TaskListAdapter(this, mTasks);
+			ListView listView = (ListView) findViewById(R.id.tasklist_list);
+			listView.setAdapter(mAdapter);
+		} else {
+			mDate = Utilities.getTodayDate();
+			new LoadTask().execute(mDate);
 		}
-		mAdapter = new TaskListAdapter(this, mTasks);
 		
 		setupUI();
 	}
@@ -97,6 +93,33 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		mTempTaskNumber = (Integer) v.getTag();
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.context_menu_listactivity, menu);
+	}
+	
+	
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.move_task:
+			DialogFragment dpf = new DatePickerFragment();
+			Bundle bundle = new Bundle();
+			bundle.putString("move", "move");
+			dpf.setArguments(bundle);
+			dpf.show(getSupportFragmentManager(), "datePicker");
+			return true;
+		}
+		return super.onContextItemSelected(item);
+	}
+	
+	
+	
 	private void setupUI() {
 		Button button = (Button) findViewById(R.id.date_button);
 		button.setOnClickListener(new OnClickListener() {
@@ -106,9 +129,9 @@ public class ListActivity extends FragmentActivity {
 				dpf.show(getSupportFragmentManager(), "datePicker");
 			}
 		});
-		if (! mDate.equals("")) {
-			button.setText(mDate);
-		}
+		
+		TextView textView = (TextView) findViewById(R.id.date_text);
+		textView.setText(mDate);
 		
 		button = (Button) findViewById(R.id.new_task_button);
 		button.setOnClickListener(new OnClickListener() {
@@ -120,76 +143,27 @@ public class ListActivity extends FragmentActivity {
 			}
 		});
 		
-		button = (Button) findViewById(R.id.save_button);
+		button = (Button) findViewById(R.id.done_button);
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				saveToDatabases();
+				finish();
 			}
 		});
+	}
+	
+	
+	
+	private void moveTaskToDate(String date) {
+		Task task = mTasks.get(mTempTaskNumber);
+		task.setDate(date);
+		new DatabaseUtilities.MoveTaskToDate(this, task, date, null).execute();
+		new AppEngineUtilities.UpdateTask(this, task).execute();
 		
+		mTasks.remove(mTempTaskNumber);
+		mAdapter = new TaskListAdapter(this, mTasks);
 		ListView listView = (ListView) findViewById(R.id.tasklist_list);
 		listView.setAdapter(mAdapter);
-	}
-	
-	
-	
-	private void saveToDatabases() {
-		// Check if there are any tasks to save.
-		if (! mTasks.isEmpty()) {
-			// Check if a date is set.
-			Button button = (Button) findViewById(R.id.date_button);
-			String date = button.getText().toString();
-			if (! date.equals(getString(R.string.set_date))) {
-				new SaveTask().execute(date);
-			} else {
-				Toast.makeText(this, getString(R.string.set_date_message), 
-						Toast.LENGTH_LONG).show();
-			}
-		} else {
-			Toast.makeText(this, getString(R.string.no_tasks_message), 
-					Toast.LENGTH_LONG).show();
-		}
-	}
-	
-	
-	
-	private void showExistingListDialog(ArrayList<Task> tasks) {
-		tempTasks = tasks;
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(getString(R.string.existing_list_message));
-		builder.setNegativeButton(android.R.string.cancel, 
-				new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
-			}
-		}).setNeutralButton(getString(R.string.add), 
-				new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				for (Task t : tempTasks) {
-					mTasks.add(t);
-				}
-				Button button = (Button) findViewById(R.id.date_button);
-				button.setText(mDate);
-				mAdapter = new TaskListAdapter(ListActivity.this, mTasks);
-				ListView list = (ListView) findViewById(R.id.tasklist_list);
-				list.setAdapter(mAdapter);
-			}
-		}).setPositiveButton(getString(R.string.delete), 
-				new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Button button = (Button) findViewById(R.id.date_button);
-				button.setText(mDate);
-				new DatabaseUtilities.DeleteList(
-						ListActivity.this, null).execute(mDate);
-			}
-		});
-		
-		AlertDialog dialog = builder.create();
-		dialog.show();
 	}
 	
 	
@@ -200,11 +174,15 @@ public class ListActivity extends FragmentActivity {
 		if (requestCode == TASK_REQUEST) {
 			if (resultCode == RESULT_OK) {
 				Task task = data.getParcelableExtra(NewTaskActivity.TASK_EXTRA);
+				task.setDate(mDate);
 				if (mIsEditing) {
 					mTasks.set(mTempTaskNumber, task);
 					mIsEditing = false;
+					new DatabaseUtilities.UpdateTask(this, task).execute();
+					new AppEngineUtilities.UpdateTask(this, task).execute();
 				} else {
 					mTasks.add(task);
+					new DatabaseUtilities.SaveTask(this, task).execute();
 				}
 				mAdapter = new TaskListAdapter(this, mTasks);
 				ListView listView = (ListView) findViewById(R.id.tasklist_list);
@@ -238,7 +216,8 @@ public class ListActivity extends FragmentActivity {
 		@Override
 		public void onDateSet(DatePicker view, int year, int monthOfYear,
 				int dayOfMonth) {
-			SimpleDateFormat formatter = new SimpleDateFormat("EEEE, MMM dd, yyyy");
+			SimpleDateFormat formatter = 
+					new SimpleDateFormat("EEEE, MMM dd, yyyy");
 			Calendar c = new GregorianCalendar(year, monthOfYear, dayOfMonth);
 			
 			// Just double check that the context is correct.
@@ -246,7 +225,15 @@ public class ListActivity extends FragmentActivity {
 				ListActivity activity = (ListActivity) getActivity();
 				String date = formatter.format(c.getTime());
 				
-				activity.new CheckListAvailabilityTask().execute(date);
+				Bundle bundle = getArguments();
+				if (bundle != null && bundle.containsKey("move")) {
+					activity.moveTaskToDate(date);
+				} else {
+					TextView textView = (TextView) activity
+							.findViewById(R.id.date_text);
+					textView.setText(date);
+					activity.new LoadTask().execute(date);
+				}
 			}
 		}
 		
@@ -254,98 +241,24 @@ public class ListActivity extends FragmentActivity {
 	
 	
 	
-	private class CheckListAvailabilityTask 
-			extends AsyncTask<String, Void, ArrayList<Task>> {
-		
-		@Override
-		protected ArrayList<Task> doInBackground(String... params) {
-			mDate = params[0];
-			ArrayList<Task> tasks = mTasksDb.getTasksByDate(mDate);
-			
-			return tasks;
-		}
-
-		@Override
-		protected void onPostExecute(ArrayList<Task> result) {
-			Button button = (Button) findViewById(R.id.date_button);
-			String date = button.getText().toString();
-			if (!mDate.equals(date) && ! result.isEmpty()) {
-				showExistingListDialog(result);
-			} else {
-				button.setText(mDate);
-			}
-		}
-		
-	}
-	
-	
-	
-	private class SaveTask extends AsyncTask<String, Void, Void> {
-		ProgressDialog dialog;
-		
-		@Override
-		protected void onPreExecute() {
-			// Display a progress dialog. Need to wait for response before
-			//  preceding in application. (Not ideal).
-			dialog = ProgressDialog.show(ListActivity.this
-					, "", getString(R.string.save_message), true);
-		}
+	private class LoadTask extends AsyncTask<String, Void, Void> {
 		
 		@Override
 		protected Void doInBackground(String... params) {
-			// Save internally to SQLite database
-			
-			// Get id of the current list or create new if not exists.
-			long listId;
-			boolean newList = true;
-			Cursor c = mTasksDb.fetchListByDate(params[0]);
-			if (c.moveToFirst()) {
-				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
-				newList = false;
-			} else {
-				listId = mTasksDb.insertList(params[0]);
-			}
-			for (Task t : mTasks) {
-				// Task has no ID, it has not been inserted before. Insert it.
-				if (t.getId() == 0) {
-					long taskId = mTasksDb.insertTask(listId, t);
-					t.setId((int)taskId);
-					t.setDate(mDate);
-					// Save externally to AppEngine
-					new AppEngineUtilities.SaveTask(
-							ListActivity.this, t).execute();
-					
-				// If the task has an id, check if we are creating a new list 
-				//  or if the task belonged to an old list.
-				//  Delete the old task, and insert the new.
-				} else if (newList || ! mDate.equals(t.getDate())) {
-					mTasksDb.deleteTaskById(t.getId());
-					new AppEngineUtilities.RemoveTask(
-							ListActivity.this, t).execute();
-					long taskId = mTasksDb.insertTask(listId, t);
-					t.setId((int)taskId);
-					t.setDate(mDate);
-					// Save externally to AppEngine
-					new AppEngineUtilities.SaveTask(
-							ListActivity.this, t).execute();
-				} else {
-					mTasksDb.updateTask(t);
-					new AppEngineUtilities.UpdateTask(
-							ListActivity.this, t).execute();
-				}
-				
-			}
+			String date = params[0];
+			TasksDb tasksDb = TasksDb.getInstance(ListActivity.this);
+			mTasks = tasksDb.getTasksByDate(date);
 			
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void result) {
-			Intent intent = new Intent(ListActivity.this, GeofenceService.class);
-			startService(intent);
-			dialog.dismiss();
-			finish();
+			mAdapter = new TaskListAdapter(ListActivity.this, mTasks);
+			ListView listView = (ListView) findViewById(R.id.tasklist_list);
+			listView.setAdapter(mAdapter);
 		}
+		
 	}
 	
 	
@@ -367,17 +280,28 @@ public class ListActivity extends FragmentActivity {
 			View rowView = inflater.inflate(R.layout.item_list_task,
 					parent, false);
 			rowView.setTag(position);
+			registerForContextMenu(rowView);
+			Task task = tasks.get(position);
 			
-			if (tasks.get(position).isFinished()) {
+			if (task.isFinished()) {
 				return null;
 			}
 			
 			TextView taskText = (TextView) rowView.findViewById(R.id.task_text);
-			taskText.setText(tasks.get(position).getCategory() + ": "
-							+ tasks.get(position).getDescription());
-			TextView locationText = (TextView) rowView
-					.findViewById(R.id.location_text);
-			locationText.setText(tasks.get(position).getAddress());
+			taskText.setText(task.getCategory() + ": " + task.getDescription());
+			TextView subText = (TextView) rowView.findViewById(R.id.sub_text);
+			String sub = "";
+			if (! task.getFixedStart().isEmpty()) {
+				sub += task.getFixedStart();
+				if (! task.getFixedEnd().isEmpty()) {
+					sub += "-" + task.getFixedEnd();
+				}
+				sub += ", ";
+			}
+			if (! task.getAddress().isEmpty()) {
+				sub += task.getAddress();
+			}
+			subText.setText(sub);
 			
 			// Set up behavior of the edit task button.
 			ImageButton button = (ImageButton) rowView
@@ -409,9 +333,7 @@ public class ListActivity extends FragmentActivity {
 					mTasks.remove(position);
 					listView.setAdapter(new TaskListAdapter(context, mTasks));
 				}
-			});
-			
-			
+			});	
 			
 			return rowView;
 		}

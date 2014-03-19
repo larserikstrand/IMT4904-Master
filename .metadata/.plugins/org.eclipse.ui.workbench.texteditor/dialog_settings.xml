@@ -13,12 +13,20 @@
 		<item value="false" key="isRegEx"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="mtp" key="selection"/>
+		<item value="GONE" key="selection"/>
 		<list key="findhistory">
-			<item value="mtp"/>
-			<item value="date"/>
+			<item value="gone"/>
+			<item value="invisi"/>
+			<item value="invisible"/>
+			<item value="insivible"/>
+			<item value="GONE"/>
+			<item value="view"/>
+			<item value="INVISIBLE"/>
+			<item value="MTP"/>
 		</list>
 		<list key="replacehistory">
+			<item value="INVISIBLE"/>
+			<item value=""/>
 		</list>
 	</section>
 </section>

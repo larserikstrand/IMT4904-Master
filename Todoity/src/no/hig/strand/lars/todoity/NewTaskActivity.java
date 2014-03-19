@@ -213,7 +213,7 @@ public class NewTaskActivity extends FragmentActivity {
 		}
 		
 		// Set behavior of the done/finish button.
-		button = (Button) findViewById(R.id.done_button);
+		button = (Button) findViewById(R.id.save_button);
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -252,11 +252,12 @@ public class NewTaskActivity extends FragmentActivity {
 					String fixedStart = button.getText().toString();
 					button = (Button) findViewById(R.id.to_button);
 					String fixedEnd = button.getText().toString();
-					if (! fixedStart.equals(getString(R.string.from)) &&
-							! fixedEnd.equals(getString(R.string.to))) {
+					if (! fixedStart.equals(getString(R.string.from))) {
 						// Has fixed times and times are properly set.
 						mTask.setFixedStart(fixedStart);
-						mTask.setFixedEnd(fixedEnd);
+						if (! fixedEnd.equals(getString(R.string.to))) {
+							mTask.setFixedEnd(fixedEnd);
+						}
 						sendTaskBack();
 					} else {
 						Toast.makeText(this, 

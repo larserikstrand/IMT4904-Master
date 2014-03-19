@@ -20,20 +20,16 @@
         	android:orientation="vertical" >
         
     	    <TextView
-        		android:layout_width="wrap_content"
+        		android:layout_width="match_parent"
         		android:layout_height="wrap_content"
         		android:layout_marginTop="5dp"
         		android:text="@string/task"
-        		android:textAppearance="?android:attr/textAppearanceLarge" />
-    		
-    		<View android:layout_width="match_parent"
-        		android:layout_height="2dp"
-        		android:layout_marginBottom="10dp"
-        		android:background="@android:color/black" />
+        		style="?android:listSeparatorTextViewStyle" />
     
     		<Spinner android:id="@+id/category_spinner"
         		android:layout_width="match_parent"
-        		android:layout_height="wrap_content" />
+        		android:layout_height="wrap_content"
+        		android:layout_marginTop="10dp" />
     
     		<EditText android:id="@+id/description_edit"
         		android:layout_width="match_parent"
@@ -43,20 +39,16 @@
         		android:inputType="textCapSentences" />
     	    
         	<TextView
-        		android:layout_width="wrap_content"
+        		android:layout_width="match_parent"
         		android:layout_height="wrap_content"
         		android:layout_marginTop="30dp"
         		android:text="@string/location"
-        		android:textAppearance="?android:attr/textAppearanceLarge" />
-        	
-        	<View android:layout_width="match_parent"
-        		android:layout_height="2dp"
-        		android:layout_marginBottom="10dp"
-        		android:background="@android:color/black" />
+        		style="?android:listSeparatorTextViewStyle" />
 
     		<AutoCompleteTextView android:id="@+id/location_text"
         		android:layout_width="match_parent"
         		android:layout_height="wrap_content"
+        		android:layout_marginTop="10dp"
         		android:hint="@string/location_hint"
         		android:inputType="textCapWords" />
     
@@ -68,20 +60,16 @@
         		android:drawableRight="@drawable/ic_location_place" />    		
 
     		<TextView
-        		android:layout_width="wrap_content"
+        		android:layout_width="match_parent"
         		android:layout_height="wrap_content"
         		android:layout_marginTop="30dp"
         		android:text="@string/time"
-        		android:textAppearance="?android:attr/textAppearanceLarge" />
-    		
-    		<View android:layout_width="match_parent"
-        		android:layout_height="2dp"
-        		android:layout_marginBottom="10dp"
-        		android:background="@android:color/black" />
+        		style="?android:listSeparatorTextViewStyle" />
     
     		<CheckBox android:id="@+id/fixed_time_check"
         		android:layout_width="match_parent"
         		android:layout_height="wrap_content"
+        		android:layout_marginTop="10dp"
         		android:text="@string/fixed_time" />
     
     		<LinearLayout android:id="@+id/time_layout"
@@ -122,12 +110,12 @@
         android:layout_height="0.2dp"
         android:background="@android:color/darker_gray" />
     
-    <Button android:id="@+id/done_button"
+    <Button android:id="@+id/save_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
-        android:drawableTop="@drawable/ic_navigation_accept"
-        android:text="@string/done"
+        android:drawableTop="@drawable/ic_content_save"
+        android:text="@string/save"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </LinearLayout>

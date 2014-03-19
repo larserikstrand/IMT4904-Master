@@ -3,6 +3,7 @@
     android:id="@+id/task_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/selectableItemBackground"
     android:orientation="horizontal" >
     
     <LinearLayout android:layout_width="0dp"
@@ -15,7 +16,7 @@
         	android:layout_height="wrap_content"
         	android:textAppearance="?android:attr/textAppearanceMedium" />
         
-        <TextView android:id="@+id/location_text"
+        <TextView android:id="@+id/sub_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"

@@ -11,6 +11,7 @@ import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteTask;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
 import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -139,6 +140,7 @@ public class AllTasksFragment extends Fragment {
 	public void onDateSet(String date) {
 		if (! date.equals(mSelectedDate)) {
 			Task task = mTasks.get(mSelectedDate).get(mSelectedTask);
+			task.setDate(date);
 			new MoveTaskToDate(getActivity(), task, date, 
 					new OnTaskMovedCallback() {
 				@Override
@@ -147,6 +149,7 @@ public class AllTasksFragment extends Fragment {
 					((MainActivity)getActivity()).updateGeofences();
 				}
 			}).execute();
+			new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
 		}
 	}
 	
@@ -179,7 +182,7 @@ public class AllTasksFragment extends Fragment {
 			Collections.sort(dates, new Utilities.DateComparator());
 			for (String d : dates) {
 				Collections.sort(tasks.get(d), 
-						new Task.TaskCategoryComparator());
+						new Task.TaskPriorityComparator());
 			}
 			mDates = dates;
 			mTasks = tasks;
@@ -241,14 +244,25 @@ public class AllTasksFragment extends Fragment {
 			TextView taskText = (TextView) convertView
 					.findViewById(R.id.task_text);
 			taskText.setText(task.getCategory() + ": " + task.getDescription());
-			TextView locationText = (TextView) convertView
-					.findViewById(R.id.location_text);
-			locationText.setText(task.getAddress());
+			TextView subText = (TextView) convertView
+					.findViewById(R.id.sub_text);
+			String sub = "";
+			if (! task.getFixedStart().isEmpty()) {
+				sub += task.getFixedStart();
+				if (! task.getFixedEnd().isEmpty()) {
+					sub += "-" + task.getFixedEnd();
+				}
+				sub += ", ";
+			}
+			if (! task.getAddress().isEmpty()) {
+				sub += task.getAddress();
+			}
+			subText.setText(sub);
 			
 			if (task.isFinished()) {
 				taskText.setPaintFlags(taskText.getPaintFlags() 
 						| Paint.STRIKE_THRU_TEXT_FLAG);
-				locationText.setPaintFlags(locationText.getPaintFlags() 
+				subText.setPaintFlags(subText.getPaintFlags() 
 						| Paint.STRIKE_THRU_TEXT_FLAG);
 			} else {
 				registerForContextMenu(convertView);

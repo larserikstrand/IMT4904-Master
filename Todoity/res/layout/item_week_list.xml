@@ -13,7 +13,7 @@
         android:paddingBottom="2dp"
         android:textAppearance="?android:attr/textAppearanceMedium" />
     
-    <TextView android:id="@+id/location_text"
+    <TextView android:id="@+id/sub_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="?android:attr/expandableListPreferredChildPaddingLeft"

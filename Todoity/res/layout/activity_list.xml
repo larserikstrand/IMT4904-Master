@@ -5,11 +5,15 @@
     android:orientation="vertical"
     tools:context=".ListActivity" >
 
-    <Button android:id="@+id/date_button"
+    <TextView android:id="@+id/date_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground"
-        android:text="@string/set_date" />
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="bold"
+        android:text="@string/pick_date" />
     
     <View android:layout_width="match_parent"
         android:layout_height="0.2dp"
@@ -41,16 +45,27 @@
         	android:textAppearance="?android:attr/textAppearanceSmall"
         	android:drawableTop="@drawable/ic_content_new" />
         
-        <Button android:id="@+id/save_button"
+        <Button android:id="@+id/date_button"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:background="?android:attr/selectableItemBackground"
+        	android:text="@string/pick_date"
+        	android:textAppearance="?android:attr/textAppearanceSmall"
+        	android:drawableTop="@drawable/ic_content_date" />
+        
+        <Button android:id="@+id/done_button"
             android:layout_width="0dp"
         	android:layout_height="wrap_content"
         	android:layout_weight="1"
         	android:paddingTop="5dp"
         	android:paddingBottom="5dp"
         	android:background="?android:attr/selectableItemBackground"
-        	android:text="@string/save"
+        	android:text="@string/done"
         	android:textAppearance="?android:attr/textAppearanceSmall"
-        	android:drawableTop="@drawable/ic_content_save" />
+        	android:drawableTop="@drawable/ic_navigation_accept" />
         
     </LinearLayout>
     

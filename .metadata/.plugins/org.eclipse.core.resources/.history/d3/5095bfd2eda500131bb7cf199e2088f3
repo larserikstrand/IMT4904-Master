@@ -1,7 +1,0 @@
-package no.hig.strand.lars.todoity.utils;
-
-public class DatabaseUtilities {
-
-	public DatabaseUtilities() {}
-	
-}

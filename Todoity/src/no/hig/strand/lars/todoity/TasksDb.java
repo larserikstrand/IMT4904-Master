@@ -64,6 +64,17 @@ public class TasksDb {
 	
 	
 	
+	public long getListIdByDate(String date) {
+		long listId = -1;
+		Cursor c = fetchListByDate(date);
+		if (c.moveToFirst()) {
+			listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
+		}
+		return listId;
+	}
+	
+	
+	
 	public Cursor fetchTasks() {
 		Cursor c = mDb.query(TaskEntry.TABLE_NAME, 
 				null, null, null, null, null, null);
@@ -96,53 +107,7 @@ public class TasksDb {
 				Task task;
 				// Loop through all the tasks belonging to the list.
 				do {
-					task = new Task();
-					task.setId(c1.getInt(c1.getColumnIndexOrThrow(
-							TaskEntry._ID)));
-					task.setDate(date);
-					task.setCategory(c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_CATEGORY)));
-					task.setDescription(c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_DESCRIPTION)));
-					String latitude = c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_LOCATION_LAT));
-					String longitude = c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_LOCATION_LNG));
-					LatLng location = new LatLng(Double.valueOf(latitude), 
-							Double.valueOf(longitude));
-					task.setLocation(location);
-					task.setAddress(c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_ADDRESS)));
-					int isActive = c1.getInt(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_IS_ACTIVE));
-					task.setActive(isActive > 0 ? true : false);
-					task.setTempStart(c1.getInt(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_TEMP_START)));
-					task.setTimeSpent(c1.getInt(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_TIME_SPENT)));
-					int isFinished = c1.getInt(c1.getColumnIndexOrThrow(
-							TaskEntry.COLUMN_NAME_IS_FINISHED));
-					task.setFinished(isFinished > 0 ? true : false);
-					
-					// Check if this task has fixed times (separate table).
-					String taskId = c1.getString(c1.getColumnIndexOrThrow(
-							TaskEntry._ID));
-					Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, 
-							new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
-							TaskTimeEntry.COLUMN_NAME_END_TIME },
-							TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
-							new String[] {taskId},
-							null, null, null);
-					if (c2.moveToFirst()) {
-						// Has fixed times.
-						task.setFixedStart(c2.getString(c2
-								.getColumnIndexOrThrow(
-										TaskTimeEntry.COLUMN_NAME_START_TIME)));
-						task.setFixedEnd(c2.getString(c2
-								.getColumnIndexOrThrow(
-										TaskTimeEntry.COLUMN_NAME_END_TIME)));
-					}
-					
+					task = populateTaskFromCursor(c1);
 					tasks.add(task);
 				} while (c1.moveToNext());
 			}
@@ -160,64 +125,7 @@ public class TasksDb {
 				new String[] { "1" }, null, null, null);
 		if (c.moveToFirst()) {
 			do {
-				Task task = new Task();
-				String taskId = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry._ID));
-				task.setId(Integer.valueOf(taskId));
-				
-				// Find the date of the list the task is belonging to.
-				long listId = c.getLong(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LIST));
-				Cursor c1 = mDb.query(ListEntry.TABLE_NAME, null, 
-						ListEntry._ID + " = ?", 
-						new String[] { Long.toString(listId) },
-						null, null, null);
-				if (c1.moveToFirst()) {
-					task.setDate(c1.getString(c1.getColumnIndexOrThrow(
-							ListEntry.COLUMN_NAME_DATE)));
-				}
-				
-				task.setCategory(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_CATEGORY)));
-				task.setDescription(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_DESCRIPTION)));
-				String latitude = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LOCATION_LAT));
-				String longitude = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LOCATION_LNG));
-				LatLng location = new LatLng(Double.valueOf(latitude), 
-						Double.valueOf(longitude));
-				task.setLocation(location);
-				task.setAddress(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_ADDRESS)));
-				int isActive = c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_IS_ACTIVE));
-				task.setActive(isActive > 0 ? true : false);
-				task.setTempStart(c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_TEMP_START)));
-				task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_TIME_SPENT)));
-				int isFinished = c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_IS_FINISHED));
-				task.setFinished(isFinished > 0 ? true : false);
-				
-				// Check if this task has fixed times (separate table).
-				Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, 
-						new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
-						TaskTimeEntry.COLUMN_NAME_END_TIME },
-						TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
-						new String[] {taskId},
-						null, null, null);
-				if (c2.moveToFirst()) {
-					// Has fixed times.
-					task.setFixedStart(c2.getString(c2
-							.getColumnIndexOrThrow(
-									TaskTimeEntry.COLUMN_NAME_START_TIME)));
-					task.setFixedEnd(c2.getString(c2
-							.getColumnIndexOrThrow(
-									TaskTimeEntry.COLUMN_NAME_END_TIME)));
-				}
-				
+				Task task = populateTaskFromCursor(c);
 				tasks.add(task);
 			} while (c.moveToNext());
 		}
@@ -234,58 +142,7 @@ public class TasksDb {
 				new String[] { Integer.toString(taskId) },
 				null, null, null);
 		if (c.moveToFirst()) {
-			task.setId(taskId);
-			
-			// Find the date of the list the task is belonging to.
-			long listId = c.getLong(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_LIST));
-			Cursor c1 = mDb.query(ListEntry.TABLE_NAME, null, 
-					ListEntry._ID + " = ?", 
-					new String[] { Long.toString(listId) },
-					null, null, null);
-			if (c1.moveToFirst()) {
-				task.setDate(c1.getString(c1.getColumnIndexOrThrow(
-						ListEntry.COLUMN_NAME_DATE)));
-			}
-			
-			task.setCategory(c.getString(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_CATEGORY)));
-			task.setDescription(c.getString(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_DESCRIPTION)));
-			String latitude = c.getString(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_LOCATION_LAT));
-			String longitude = c.getString(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_LOCATION_LNG));
-			LatLng location = new LatLng(Double.valueOf(latitude), 
-					Double.valueOf(longitude));
-			task.setLocation(location);
-			task.setAddress(c.getString(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_ADDRESS)));
-			int isActive = c.getInt(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_IS_ACTIVE));
-			task.setActive(isActive > 0 ? true : false);
-			task.setTempStart(c.getInt(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_TEMP_START)));
-			task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_TIME_SPENT)));
-			int isFinished = c.getInt(c.getColumnIndexOrThrow(
-					TaskEntry.COLUMN_NAME_IS_FINISHED));
-			task.setFinished(isFinished > 0 ? true : false);
-			
-			// Check if this task has fixed times (separate table).
-			Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, null,
-					TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
-					new String[] { Integer.toString(taskId) },
-					null, null, null);
-			if (c2.moveToFirst()) {
-				// Has fixed times.
-				task.setFixedStart(c2.getString(c2
-						.getColumnIndexOrThrow(
-								TaskTimeEntry.COLUMN_NAME_START_TIME)));
-				task.setFixedEnd(c2.getString(c2
-						.getColumnIndexOrThrow(
-								TaskTimeEntry.COLUMN_NAME_END_TIME)));
-			}
+			task = populateTaskFromCursor(c);
 		}
 		return task;
 	}
@@ -303,69 +160,79 @@ public class TasksDb {
 		if (c.moveToFirst()) {
 			Task task;
 			do {
-				task = new Task();
-				String taskId = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry._ID));
-				task.setId(Integer.valueOf(taskId));
-				
-				// Find the date of the list the task is belonging to.
-				long listId = c.getLong(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LIST));
-				Cursor c1 = mDb.query(ListEntry.TABLE_NAME, null, 
-						ListEntry._ID + " = ?", 
-						new String[] { Long.toString(listId) },
-						null, null, null);
-				if (c1.moveToFirst()) {
-					task.setDate(c1.getString(c1.getColumnIndexOrThrow(
-							ListEntry.COLUMN_NAME_DATE)));
-				}
-				
-				task.setCategory(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_CATEGORY)));
-				task.setDescription(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_DESCRIPTION)));
-				String latitude = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LOCATION_LAT));
-				String longitude = c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_LOCATION_LNG));
-				LatLng location = new LatLng(Double.valueOf(latitude), 
-						Double.valueOf(longitude));
-				task.setLocation(location);
-				task.setAddress(c.getString(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_ADDRESS)));
-				int isActive = c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_IS_ACTIVE));
-				task.setActive(isActive > 0 ? true : false);
-				task.setTempStart(c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_TEMP_START)));
-				task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_TIME_SPENT)));
-				int isFinished = c.getInt(c.getColumnIndexOrThrow(
-						TaskEntry.COLUMN_NAME_IS_FINISHED));
-				task.setFinished(isFinished > 0 ? true : false);
-				
-				// Check if this task has fixed times (separate table).
-				Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, 
-						new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
-						TaskTimeEntry.COLUMN_NAME_END_TIME },
-						TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
-						new String[] {taskId},
-						null, null, null);
-				if (c2.moveToFirst()) {
-					// Has fixed times.
-					task.setFixedStart(c2.getString(c2
-							.getColumnIndexOrThrow(
-									TaskTimeEntry.COLUMN_NAME_START_TIME)));
-					task.setFixedEnd(c2.getString(c2
-							.getColumnIndexOrThrow(
-									TaskTimeEntry.COLUMN_NAME_END_TIME)));
-				}
-				
+				task = populateTaskFromCursor(c);
 				tasks.add(task);
 			} while (c.moveToNext());
 		}
 		
 		return tasks;
+	}
+	
+	
+	
+	private Task populateTaskFromCursor(Cursor c) {
+		Task task = new Task();
+		
+		String taskId = c.getString(c.getColumnIndexOrThrow(
+				TaskEntry._ID));
+		task.setId(Integer.valueOf(taskId));
+		
+		// Find the date of the list the task is belonging to.
+		long listId = c.getLong(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_LIST));
+		Cursor c1 = mDb.query(ListEntry.TABLE_NAME, null, 
+				ListEntry._ID + " = ?", 
+				new String[] { Long.toString(listId) },
+				null, null, null);
+		if (c1.moveToFirst()) {
+			task.setDate(c1.getString(c1.getColumnIndexOrThrow(
+					ListEntry.COLUMN_NAME_DATE)));
+		}
+		
+		task.setCategory(c.getString(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_CATEGORY)));
+		task.setDescription(c.getString(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_DESCRIPTION)));
+		String latitude = c.getString(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_LOCATION_LAT));
+		String longitude = c.getString(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_LOCATION_LNG));
+		LatLng location = new LatLng(Double.valueOf(latitude), 
+				Double.valueOf(longitude));
+		task.setLocation(location);
+		task.setAddress(c.getString(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_ADDRESS)));
+		task.setPriority(c.getInt(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_PRIORITY)));
+		int isActive = c.getInt(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_IS_ACTIVE));
+		task.setActive(isActive > 0 ? true : false);
+		task.setTempStart(c.getInt(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_TEMP_START)));
+		task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_TIME_SPENT)));
+		int isFinished = c.getInt(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_IS_FINISHED));
+		task.setFinished(isFinished > 0 ? true : false);
+		
+		// Check if this task has fixed times (separate table).
+		Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, 
+				new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
+				TaskTimeEntry.COLUMN_NAME_END_TIME },
+				TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
+				new String[] {taskId},
+				null, null, null);
+		if (c2.moveToFirst()) {
+			// Has fixed times.
+			task.setFixedStart(c2.getString(c2
+					.getColumnIndexOrThrow(
+							TaskTimeEntry.COLUMN_NAME_START_TIME)));
+			task.setFixedEnd(c2.getString(c2
+					.getColumnIndexOrThrow(
+							TaskTimeEntry.COLUMN_NAME_END_TIME)));
+		}
+		
+		return task;
 	}
 	
 	
@@ -451,6 +318,7 @@ public class TasksDb {
 		values.put(TaskEntry.COLUMN_NAME_LOCATION_LNG, 
 				task.getLocation().longitude);
 		values.put(TaskEntry.COLUMN_NAME_ADDRESS, task.getAddress());
+		values.put(TaskEntry.COLUMN_NAME_PRIORITY, task.getPriority());
 		values.put(TaskEntry.COLUMN_NAME_IS_ACTIVE, (task.isActive() ? 1 : 0));
 		values.put(TaskEntry.COLUMN_NAME_TEMP_START, task.getTempStart());
 		values.put(TaskEntry.COLUMN_NAME_TIME_START, task.getTimeStarted());
@@ -492,6 +360,7 @@ public class TasksDb {
 		values.put(TaskEntry.COLUMN_NAME_LOCATION_LNG, 
 				task.getLocation().longitude);
 		values.put(TaskEntry.COLUMN_NAME_ADDRESS, task.getAddress());
+		values.put(TaskEntry.COLUMN_NAME_PRIORITY, task.getPriority());
 		values.put(TaskEntry.COLUMN_NAME_IS_ACTIVE, (task.isActive() ? 1 : 0));
 		values.put(TaskEntry.COLUMN_NAME_TEMP_START, task.getTempStart());
 		values.put(TaskEntry.COLUMN_NAME_TIME_START, task.getTimeStarted());
@@ -508,14 +377,34 @@ public class TasksDb {
 	
 	
 	
-	public boolean updateTaskActiveStatus(int id, boolean active) {
+	public boolean moveTaskToDate(int taskId, int listId) {
+		Cursor c = mDb.query(TaskEntry.TABLE_NAME, 
+				null, 
+				TaskEntry._ID + " = ?", 
+				new String[] { Integer.toString(taskId) },
+				null, null, null);
+		if (c.moveToFirst()) {
+			long list = c.getLong(c.getColumnIndexOrThrow(
+					TaskEntry.COLUMN_NAME_LIST));
+			c = mDb.query(TaskEntry.TABLE_NAME, 
+					null, 
+					TaskEntry.COLUMN_NAME_LIST + " = ?", 
+					new String[] { Long.toString(list) },
+					null, null, null);
+			if (c.getCount() == 1) {
+				mDb.delete(ListEntry.TABLE_NAME, 
+						ListEntry._ID + " = ?", 
+						new String[] { Long.toString(list) } );
+			}
+		}
 		ContentValues values = new ContentValues();
-		values.put(TaskEntry.COLUMN_NAME_IS_ACTIVE, (active ? 1 : 0));
+		values.put(TaskEntry.COLUMN_NAME_LIST, listId);
 		int result = mDb.update(TaskEntry.TABLE_NAME, values,
 				TaskEntry._ID + " = ?", 
-				new String[] { Integer.toString(id) });
+				new String[] { Integer.toString(taskId) });
 		
 		return result > 0 ? true : false;
 	}
+	
 	
 }

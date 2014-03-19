@@ -50,7 +50,6 @@ public class Utilities {
 	
 	public static ArrayList<String> autocomplete(String input) {
 	    ArrayList<String> resultList = null;
-
 	    HttpURLConnection conn = null;
 	    StringBuilder jsonResults = new StringBuilder();
 	    try {
@@ -148,6 +147,14 @@ public class Utilities {
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
 		return time - c.getTimeInMillis();
+	}
+	
+	
+	
+	public static int getDayOfWeek(long time) {
+		Calendar c = Calendar.getInstance();
+		c.setTimeInMillis(time);
+		return c.get(Calendar.DAY_OF_WEEK);
 	}
 	
 	

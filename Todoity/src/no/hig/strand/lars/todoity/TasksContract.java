@@ -22,6 +22,7 @@ public final class TasksContract {
 		public static final String COLUMN_NAME_LOCATION_LAT = "location_lat";
 		public static final String COLUMN_NAME_LOCATION_LNG = "location_lng";
 		public static final String COLUMN_NAME_ADDRESS = "address";
+		public static final String COLUMN_NAME_PRIORITY = "priority";
 		public static final String COLUMN_NAME_IS_ACTIVE = "is_active";
 		public static final String COLUMN_NAME_TEMP_START = "temp_start";
 		public static final String COLUMN_NAME_TIME_START = "time_start";

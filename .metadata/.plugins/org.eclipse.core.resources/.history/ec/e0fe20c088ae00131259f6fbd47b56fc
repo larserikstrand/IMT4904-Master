@@ -1,0 +1,155 @@
+package no.hig.strand.lars.todoity.adapters;
+
+import java.util.HashMap;
+import java.util.List;
+
+import no.hig.strand.lars.todoity.MainActivity;
+import no.hig.strand.lars.todoity.R;
+import no.hig.strand.lars.todoity.Task;
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
+import android.content.Context;
+import android.graphics.Paint;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+
+
+public class TodayArrayAdapter extends ArrayAdapter<Task> {
+	
+	final int INVALID_ID = -1;
+	
+	HashMap<Task, Integer> mIdMap = new HashMap<Task, Integer>();
+	Context context;
+
+	public TodayArrayAdapter(Context context, int textViewResourceId, 
+			List<Task> tasks) {
+        super(context, textViewResourceId, tasks);
+        this.context = context;
+        for (int i = 0; i < tasks.size(); ++i) {
+            mIdMap.put(tasks.get(i), i);
+        }
+    }
+	
+	@Override
+    public long getItemId(int position) {
+        if (position < 0 || position >= mIdMap.size()) {
+            return INVALID_ID;
+        }
+        Task item = getItem(position);
+        return mIdMap.get(item);
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return true;
+    }
+    
+    @Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		LayoutInflater inflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View rowView = inflater.inflate(R.layout.item_today_list,
+				parent, false);
+		rowView.setTag(position);
+		context.registerForContextMenu(rowView);
+		
+		TextView taskText = (TextView) rowView.findViewById(R.id.task_text);
+		taskText.setText(tasks.get(position).getCategory() + ": "
+						+ tasks.get(position).getDescription());
+		TextView locationText = (TextView) rowView
+				.findViewById(R.id.location_text);
+		locationText.setText(tasks.get(position).getAddress());
+		
+		
+		Button startPauseButton = (Button) rowView.
+				findViewById(R.id.start_pause_button);
+		if (tasks.get(position).isActive()) {
+			rowView.setBackgroundColor(getResources()
+					.getColor(R.color.lightgreen));
+			startPauseButton.setText(getString(R.string.pause));
+		}
+		startPauseButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				LinearLayout layout = (LinearLayout) v.getParent();
+				int position = (Integer) layout.getTag();
+				Task task = mTasks.get(position);
+				String text = ((Button) v).getText().toString();
+				if (text.equals(getString(R.string.start))) {
+					((Button) v).setText(getString(R.string.pause));
+					layout.setBackgroundColor(getResources()
+							.getColor(R.color.lightgreen));
+					startTask(task);
+				} else {
+					((Button) v).setText(getString(R.string.start));
+					layout.setBackgroundResource(0);
+					pauseTask(task);
+				}
+			}
+		});
+		
+		CheckBox checkBox = (CheckBox) rowView
+				.findViewById(R.id.finish_check);
+		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(
+					CompoundButton buttonView, boolean isChecked) {
+				LinearLayout layout = (LinearLayout) buttonView.getParent();
+				int position = (Integer) layout.getTag();
+				
+				TextView taskText = (TextView) layout
+						.findViewById(R.id.task_text);
+				TextView locationText = (TextView) layout
+						.findViewById(R.id.location_text);
+				Button button = (Button) layout.findViewById(
+						R.id.start_pause_button);
+				
+				Task task = mTasks.get(position);
+				// When the task is checked and finished.
+				if (isChecked) {
+					task.setFinished(true);
+					button.setText(getString(R.string.start));
+					layout.setBackgroundResource(0);
+					taskText.setPaintFlags(taskText.getPaintFlags() 
+							| Paint.STRIKE_THRU_TEXT_FLAG);
+					locationText.setPaintFlags(locationText.getPaintFlags() 
+							| Paint.STRIKE_THRU_TEXT_FLAG);
+					button.setEnabled(false);
+					pauseTask(task);
+				} else {
+					task.setFinished(false);
+					new DatabaseUtilities.UpdateTask(
+							getActivity(), task).execute();
+					new AppEngineUtilities.UpdateTask(
+							getActivity(), task).execute();
+					taskText.setPaintFlags(taskText.getPaintFlags() 
+							& (~Paint.STRIKE_THRU_TEXT_FLAG));
+					locationText.setPaintFlags(locationText.getPaintFlags() 
+							& (~Paint.STRIKE_THRU_TEXT_FLAG));
+					button.setEnabled(true);
+					((MainActivity)getActivity()).updateGeofences();
+				}
+			}
+		});
+		
+		if (tasks.get(position).isFinished()) {
+			checkBox.setChecked(true);
+			taskText.setPaintFlags(taskText.getPaintFlags() 
+					| Paint.STRIKE_THRU_TEXT_FLAG);
+			locationText.setPaintFlags(locationText.getPaintFlags() 
+					| Paint.STRIKE_THRU_TEXT_FLAG);
+			startPauseButton.setEnabled(false);
+		}
+		
+		return rowView;
+	}
+}

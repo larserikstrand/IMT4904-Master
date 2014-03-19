@@ -22,6 +22,33 @@ public class DatabaseUtilities {
 	
 	
 	
+	public static class SaveTask extends AsyncTask<Void, Void, Void> {
+		TasksDb tasksDb;
+		Task task;
+		Context context;
+		
+		public SaveTask(Context context, Task task) {
+			this.task = task;
+			this.context = context;
+			tasksDb = TasksDb.getInstance(context);
+		}
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			long listId = tasksDb.getListIdByDate(task.getDate());
+			if (listId < 0) {
+				listId = tasksDb.insertList(task.getDate());
+			}
+			long taskId = tasksDb.insertTask(listId, task);
+			task.setId((int) taskId);
+			new AppEngineUtilities.SaveTask(context, task).execute();
+			
+			return null;
+		}
+	}
+	
+	
+	
 	public static class UpdateTask extends AsyncTask<Void, Void, Void> {
 		TasksDb tasksDb;
 		Task task;
@@ -85,7 +112,9 @@ public class DatabaseUtilities {
 
 		@Override
 		protected void onPostExecute(Void result) {
-			callback.onDeletionDone();
+			if (callback != null) {
+				callback.onDeletionDone();
+			}
 		}
 	}
 	
@@ -109,24 +138,24 @@ public class DatabaseUtilities {
 		protected Void doInBackground(Void... params) {			
 			// Move the task to the selected date. 
 			//  Create list on that date if none exist.
-			long listId = -1;
+			int listId = -1;
 			Cursor c = tasksDb.fetchListByDate(date);
 			if (c.moveToFirst()) {
-				listId = c.getLong(c.getColumnIndexOrThrow(ListEntry._ID));
+				listId = c.getInt(c.getColumnIndexOrThrow(ListEntry._ID));
 			} else {
-				listId = tasksDb.insertList(date);
+				listId = (int) tasksDb.insertList(date);
 			}
 			
-			// Remove old task and insert new one.
-			tasksDb.deleteTaskById(task.getId());
-			tasksDb.insertTask(listId, task);
+			tasksDb.moveTaskToDate(task.getId(), listId);
 			
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void result) {
-			callback.onTaskMoved();
+			if (callback != null) {
+				callback.onTaskMoved();
+			}
 		}
 		
 	}

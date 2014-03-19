@@ -1,5 +1,6 @@
 package no.hig.strand.lars.todoity.services;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -64,9 +65,9 @@ public class RecommenderService extends Service implements
 	
 	/*
 	 * Calculate the type of task (category) that is completed most often
-	 *  at the time of the calculation.
+	 *  at the time of day of the calculation.
 	 */
-	private void timeOfDayRecommendation() {
+	private AbstractMap.SimpleEntry<String, Float> timeOfDayRecommendation() {
 		List<String> categories = readCategories();
 		HashMap<String, Integer> categoryOccurrences = 
 				new HashMap<String, Integer>();
@@ -97,28 +98,35 @@ public class RecommenderService extends Service implements
 			}
 		}
 		
-		Entry<String, Integer> highestOccurrence = null;
-		for (Entry<String, Integer> entry : categoryOccurrences.entrySet()) {
-			if (highestOccurrence == null || 
-					entry.getValue() > highestOccurrence.getValue()) {
-				highestOccurrence = entry;
-			}
-		}
-		if (highestOccurrence != null) {
-			String categoryToRecommend = highestOccurrence.getKey();
-		}
+		AbstractMap.SimpleEntry<String, Float> recommendation = 
+				getRecommendationFromMap(categoryOccurrences);
+		return recommendation;
 	}
+	
+	
+	
+	private void timeOfDayAndDayOfWeekRecommendation() {
+		
+	}
+	
+	
+	
+	private void locationRecommendation() {
+		
+	}
+	
 	
 	
 	/*
 	 * Calculates and recommends the type of task (category) that is completed 
 	 * most often at the time of the calculation and the current location.
 	 */
-	private void timeOfDayAndLocationRecommendation() {
+	private AbstractMap.SimpleEntry<String, Float> 
+			timeOfDayAndLocationRecommendation() {
 		if (mLocationClient.isConnected()) {
 			mLastKnownLocation = mLocationClient.getLastLocation();
 		} else if (mLastKnownLocation == null) {
-			return;
+			return null;
 		}
 		
 		List<String> categories = readCategories();
@@ -162,16 +170,15 @@ public class RecommenderService extends Service implements
 			}
 		}
 		
-		Entry<String, Integer> highestOccurrence = null;
-		for (Entry<String, Integer> entry : categoryOccurrences.entrySet()) {
-			if (highestOccurrence == null || 
-					entry.getValue() > highestOccurrence.getValue()) {
-				highestOccurrence = entry;
-			}
-		}
-		if (highestOccurrence != null) {
-			String categoryToRecommend = highestOccurrence.getKey();
-		}
+		AbstractMap.SimpleEntry<String, Float> recommendation = 
+				getRecommendationFromMap(categoryOccurrences);
+		return recommendation;
+	}
+	
+	
+	
+	private void timeOfDayAndDayOfWeekAndLocationRecommendation() {
+		
 	}
 	
 	
@@ -192,6 +199,30 @@ public class RecommenderService extends Service implements
 		}
 		
 		return categories;
+	}
+	
+	
+	
+	private AbstractMap.SimpleEntry<String, Float> getRecommendationFromMap(
+			HashMap<String, Integer> map) {
+		Entry<String, Integer> highestOccurrence = null;
+		int count = 0, total = 0;
+		for (Entry<String, Integer> entry : map.entrySet()) {
+			total += entry.getValue();
+			if (highestOccurrence == null || 
+					entry.getValue() > highestOccurrence.getValue()) {
+				highestOccurrence = entry;
+				count = entry.getValue();
+			}
+		}
+		if (highestOccurrence != null) {
+			float probability = count / total;
+			AbstractMap.SimpleEntry<String, Float> recommendation = 
+					new AbstractMap.SimpleEntry<String, Float>(
+							highestOccurrence.getKey(), probability);
+			return recommendation;
+		}
+		return null;
 	}
 	
 	

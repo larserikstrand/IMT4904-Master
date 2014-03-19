@@ -1,9 +1,0 @@
-package no.hig.strand.lars.todoity;
-
-import javax.persistence.Entity;
-
-@Entity
-public class ContextEntity {
-	
-	
-}
