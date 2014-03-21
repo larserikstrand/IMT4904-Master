@@ -229,6 +229,7 @@ public class ListActivity extends FragmentActivity {
 				if (bundle != null && bundle.containsKey("move")) {
 					activity.moveTaskToDate(date);
 				} else {
+					activity.mDate = date;
 					TextView textView = (TextView) activity
 							.findViewById(R.id.date_text);
 					textView.setText(date);

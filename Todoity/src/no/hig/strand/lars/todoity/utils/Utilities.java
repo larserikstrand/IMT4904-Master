@@ -151,6 +151,22 @@ public class Utilities {
 	
 	
 	
+	/**
+	 * Converts time of day from String format (HH:mm) to millisecond long.
+	 * @param time - Time string to be converted.
+	 * @return time in milliseconds as a long value.
+	 */
+	@SuppressLint("SimpleDateFormat")
+	public static long getTimeOfDay(String time) {
+		Calendar c = Calendar.getInstance();
+		String times[] = time.split(":");
+		c.set(0, 0, 0, Integer.valueOf(times[0]), Integer.valueOf(times[0]), 0);
+		c.set(Calendar.MILLISECOND, 0);
+		return c.getTimeInMillis();
+	}
+	
+	
+	
 	public static int getDayOfWeek(long time) {
 		Calendar c = Calendar.getInstance();
 		c.setTimeInMillis(time);

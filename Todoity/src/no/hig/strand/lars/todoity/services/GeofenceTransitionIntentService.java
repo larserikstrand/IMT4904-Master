@@ -13,6 +13,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -22,6 +25,8 @@ import com.google.android.gms.location.LocationClient;
 public class GeofenceTransitionIntentService extends IntentService {
 	
 	private TasksDb mTasksDb;
+	
+	public static final int GEOFENCE_NOTIFICATION_ID = 1251;
 	
 	public GeofenceTransitionIntentService() {
 		super("GeofenceTransitionService");
@@ -34,7 +39,7 @@ public class GeofenceTransitionIntentService extends IntentService {
 			int errorCode = LocationClient.getErrorCode(intent);
 			Log.e("GeofenceTransitionIntentService", 
 					"Location Services error: " + Integer.toString(errorCode));
-		} else {
+		} else if (! MainActivity.isAppVisible) {
 			int transitionType = LocationClient.getGeofenceTransition(intent);
 			if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER) {
 				// Get the geofences that were triggered (likely only one).
@@ -77,11 +82,22 @@ public class GeofenceTransitionIntentService extends IntentService {
         }
         builder.setSmallIcon(R.drawable.recommender_notification);
         builder.setContentIntent(pi);
+        
+        // Display notification.
 		final Notification note = builder.build();
-		note.flags |= Notification.FLAG_SHOW_LIGHTS;
-		NotificationManager mNotificationManager = (NotificationManager) 
+		note.flags |= Notification.FLAG_AUTO_CANCEL;
+		NotificationManager notificationManager = (NotificationManager) 
 				getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.notify(0, note);
+		notificationManager.notify(GEOFENCE_NOTIFICATION_ID, note);
+		
+		// Notification sound.
+		try {
+			Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+			Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+			r.play();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.GregorianCalendar;
 
 import no.hig.strand.lars.todoity.services.ContextService;
 import no.hig.strand.lars.todoity.services.GeofenceService;
+import no.hig.strand.lars.todoity.services.RecommenderService;
 import no.hig.strand.lars.todoity.utils.Utilities.ErrorDialogFragment;
 import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.annotation.SuppressLint;
@@ -52,6 +53,7 @@ public class MainActivity extends FragmentActivity {
 	private TasksDb mTasksDb;
 	
 	public static Context mContext;
+	public static boolean isAppVisible;
 	
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
@@ -89,6 +91,8 @@ public class MainActivity extends FragmentActivity {
         
         setupUI();
         
+        Intent intent = new Intent(this, RecommenderService.class);
+        startService(intent);
     }
 
     
@@ -96,6 +100,7 @@ public class MainActivity extends FragmentActivity {
     @Override
 	protected void onResume() {
 		super.onResume();
+		isAppVisible = true;
 	}
     
     
@@ -103,6 +108,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onPause() {
     	super.onPause();
+    	isAppVisible = false;
     }
     
     

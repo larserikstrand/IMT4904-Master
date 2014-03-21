@@ -207,9 +207,13 @@ public class TasksDb {
 		int isActive = c.getInt(c.getColumnIndexOrThrow(
 				TaskEntry.COLUMN_NAME_IS_ACTIVE));
 		task.setActive(isActive > 0 ? true : false);
-		task.setTempStart(c.getInt(c.getColumnIndexOrThrow(
+		task.setTempStart(c.getLong(c.getColumnIndexOrThrow(
 				TaskEntry.COLUMN_NAME_TEMP_START)));
-		task.setTimeSpent(c.getInt(c.getColumnIndexOrThrow(
+		task.setTimeStarted(c.getLong(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_TIME_START)));
+		task.setTimeEnded(c.getLong(c.getColumnIndexOrThrow(
+				TaskEntry.COLUMN_NAME_TIME_END)));
+		task.setTimeSpent(c.getLong(c.getColumnIndexOrThrow(
 				TaskEntry.COLUMN_NAME_TIME_SPENT)));
 		int isFinished = c.getInt(c.getColumnIndexOrThrow(
 				TaskEntry.COLUMN_NAME_IS_FINISHED));
@@ -219,7 +223,7 @@ public class TasksDb {
 		Cursor c2 = mDb.query(TaskTimeEntry.TABLE_NAME, 
 				new String[] {TaskTimeEntry.COLUMN_NAME_START_TIME,
 				TaskTimeEntry.COLUMN_NAME_END_TIME },
-				TaskTimeEntry.COLUMN_NAME_TASK_ID + "=?", 
+				TaskTimeEntry.COLUMN_NAME_TASK_ID + " = ?", 
 				new String[] {taskId},
 				null, null, null);
 		if (c2.moveToFirst()) {
@@ -371,6 +375,27 @@ public class TasksDb {
 		int result = mDb.update(TaskEntry.TABLE_NAME, values,
 				TaskEntry._ID + " = ?", 
 				new String[] { Integer.toString(task.getId()) });
+		
+		if (! task.getFixedStart().equals("")) {
+			values.clear();
+			values.put(TaskTimeEntry.COLUMN_NAME_TASK_ID, task.getId());
+			values.put(TaskTimeEntry.COLUMN_NAME_START_TIME, 
+					task.getFixedStart());
+			values.put(TaskTimeEntry.COLUMN_NAME_END_TIME, task.getFixedEnd());
+			
+			Cursor c = mDb.query(TaskTimeEntry.TABLE_NAME, null, 
+					TaskTimeEntry.COLUMN_NAME_TASK_ID + " = ?", 
+					new String[] { Integer.toString(task.getId()) },
+					null, null, null);
+			if (c.moveToFirst()) {
+				mDb.update(TaskTimeEntry.TABLE_NAME, values,
+						TaskTimeEntry.COLUMN_NAME_TASK_ID + " = ?", 
+						new String[] { Integer.toString(task.getId()) });
+			} else {
+				mDb.insert(TaskTimeEntry.TABLE_NAME, null, values);
+			}
+			
+		}
 		
 		return result > 0 ? true : false;
 	}

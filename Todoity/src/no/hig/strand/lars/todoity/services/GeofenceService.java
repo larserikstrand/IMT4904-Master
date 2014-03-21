@@ -37,7 +37,7 @@ public class GeofenceService extends Service implements
 	//  the tasks, including 'today' (i.e. only 'today' means a value of 1).
 	private static final int NUMBER_OF_GEOFENCE_DAYS = 4;
 	// Radius of geofences (in meters).
-	private static final float GEOFENCE_RADIUS = 1000;
+	private static final float GEOFENCE_RADIUS = 500;
 	
 	private static final long GEOFENCE_DURATION = 
 			1000 * 60 * 60 * 24 * NUMBER_OF_GEOFENCE_DAYS;
@@ -52,14 +52,6 @@ public class GeofenceService extends Service implements
 		mGeofencedTasks = new ArrayList<Task>();
 		mLocationClient = new LocationClient(this, this, this);
 		mLocationClient.connect();
-	}
-
-	
-	
-	@Override
-	public void onDestroy() {
-		// TODO Auto-generated method stub
-		super.onDestroy();
 	}
 
 	
@@ -109,9 +101,10 @@ public class GeofenceService extends Service implements
 		
 		for (Task task : mGeofencedTasks) {
 			// Add geofence for task if the task has a location, is not
-			//  currently active and is not finished.
-			if (! task.getLocation().equals(new LatLng(0, 0)) &&
-					! task.isActive() && ! task.isFinished()) {
+			//  currently active or finished, or does not have a fixed start.
+			if ( ! task.getLocation().equals(new LatLng(0, 0)) &&
+					! task.isActive() && ! task.isFinished() &&
+					 task.getFixedStart().isEmpty() ) {
 				Geofence geofence = new Geofence.Builder()
 						.setRequestId(Integer.toString(task.getId()))
 						.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
@@ -148,6 +141,8 @@ public class GeofenceService extends Service implements
 		mLocationClient.disconnect();
 		stopSelf();
 	}
+	
+	
 	
 	
 	

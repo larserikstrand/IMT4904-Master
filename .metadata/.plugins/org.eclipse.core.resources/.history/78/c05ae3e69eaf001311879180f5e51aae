@@ -1,0 +1,20 @@
+package no.hig.strand.lars.todoity;
+
+import android.app.Application;
+
+public class ActivityVisibility extends Application {
+
+	private static boolean activityVisible;
+	
+	public static boolean isActivityVisible() {
+		return activityVisible;
+	}
+	
+	public static void activityResumed() {
+		activityVisible = true;
+	}
+	
+	public static void activityPaused() {
+		activityVisible = false;
+	}
+}
