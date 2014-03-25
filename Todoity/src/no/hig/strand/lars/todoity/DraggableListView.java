@@ -96,7 +96,8 @@ public class DraggableListView extends ListView {
 
     private boolean mIsWaitingForScrollFinish = false;
     private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;
-
+    
+    
     public DraggableListView(Context context) {
         super(context);
         init(context);
@@ -127,7 +128,7 @@ public class DraggableListView extends ListView {
         View selectedView = getChildAt(itemNum);
         mMobileItemId = getAdapter().getItemId(position);
         mHoverCell = getAndAddHoverView(selectedView);
-        selectedView.setVisibility(INVISIBLE);
+        selectedView.setVisibility(View.INVISIBLE);
 
         mCellIsMobile = true;
 
@@ -341,7 +342,7 @@ public class DraggableListView extends ListView {
             mDownY = mLastEventY;
 
             final int switchViewStartTop = switchView.getTop();
-            
+                        
             mobileView.setVisibility(VISIBLE);
             switchView.setVisibility(INVISIBLE);
 

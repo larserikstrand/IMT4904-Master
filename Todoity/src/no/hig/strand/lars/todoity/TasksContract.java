@@ -38,6 +38,7 @@ public final class TasksContract {
 		public static final String COLUMN_NAME_TASK = "task";
 		public static final String COLUMN_NAME_TYPE = "type";
 		public static final String COLUMN_NAME_CONTEXT = "context";
+		public static final String COLUMN_NAME_DETAILS = "details";
 		public static final String TYPE_LOCATION = "location";
 		public static final String TYPE_ACTIVITY = "activity";
 	}

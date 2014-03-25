@@ -49,9 +49,9 @@ public class ContextService extends Service implements
 	boolean activityInProgress;
 	
 	// TODO change values to something appropriate.
-	private static final long LOCATION_UPDATE_INTERVAL = 1000*10;
-	private static final long FASTEST_LOCATION_INTERVAL = 1000*5;
-	private static final long ACTIVITY_DETECTION_INTERVAL = 1000*1;
+	private static final long LOCATION_UPDATE_INTERVAL = 1000*60;
+	private static final long FASTEST_LOCATION_INTERVAL = 1000*30;
+	private static final long ACTIVITY_DETECTION_INTERVAL = 1000*60;
 
 	public static final int NOTIFICATION_ID = 4723;
 	

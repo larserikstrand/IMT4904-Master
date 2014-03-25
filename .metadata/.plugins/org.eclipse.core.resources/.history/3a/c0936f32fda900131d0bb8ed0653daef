@@ -1,5 +1,0 @@
-package no.hig.strand.lars.todoity.broadcastreceivers;
-
-public class GeofenceCrossedReceiver {
-
-}

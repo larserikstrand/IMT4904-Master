@@ -7,14 +7,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
+import no.hig.strand.lars.todoity.utils.DatabaseUtilities;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteList;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.DeleteTask;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
-import no.hig.strand.lars.todoity.utils.AppEngineUtilities;
 import no.hig.strand.lars.todoity.utils.Utilities;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -123,6 +125,12 @@ public class WeekFragment extends Fragment {
 				}
 			}).execute();
 			return true;
+		case R.id.edit_task:
+			Intent intent = new Intent(getActivity(), NewTaskActivity.class);
+			intent.putExtra(NewTaskActivity.TASK_EXTRA, 
+					mTasks.get(mSelectedDate).get(mSelectedTask));
+			startActivityForResult(intent, MainActivity.EDIT_TASK_REQUEST);
+			return true;
 		}
 		return super.onContextItemSelected(item);
 	}
@@ -155,6 +163,28 @@ public class WeekFragment extends Fragment {
 			}).execute();
 			new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
 		}
+	}
+	
+	
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == MainActivity.EDIT_TASK_REQUEST) {
+			if (resultCode == Activity.RESULT_OK) {
+				Task task = data.getParcelableExtra(NewTaskActivity.TASK_EXTRA);
+				
+				mTasks.get(mSelectedDate).set(mSelectedTask, task);
+				new DatabaseUtilities.UpdateTask(getActivity(), task).execute();
+				new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
+				
+				ExpandableListView list = (ExpandableListView) mRootView
+						.findViewById(R.id.week_list);
+				mAdapter = new WeekListAdapter(
+						MainActivity.mContext, mDates, mTasks);
+				list.setAdapter(mAdapter);
+			}
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 	
 	

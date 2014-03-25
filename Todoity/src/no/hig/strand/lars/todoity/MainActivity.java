@@ -7,7 +7,6 @@ import java.util.GregorianCalendar;
 
 import no.hig.strand.lars.todoity.services.ContextService;
 import no.hig.strand.lars.todoity.services.GeofenceService;
-import no.hig.strand.lars.todoity.services.RecommenderService;
 import no.hig.strand.lars.todoity.utils.Utilities.ErrorDialogFragment;
 import no.hig.strand.lars.todoity.utils.Utilities.Installation;
 import android.annotation.SuppressLint;
@@ -57,6 +56,7 @@ public class MainActivity extends FragmentActivity {
 	
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
+	public static final int EDIT_TASK_REQUEST = 2;
 	public static final String TASKS_EXTRA = "no.hig.strand.lars.mtp.TASKS";
 	public static final String DATE_EXTRA  = "no.hig.strand.lars.mtp.DATE";
 	public static final String RECEIVER_EXTRA = 
@@ -90,9 +90,6 @@ public class MainActivity extends FragmentActivity {
         mViewPager.setAdapter(mTabsPagerAdapter);
         
         setupUI();
-        
-        Intent intent = new Intent(this, RecommenderService.class);
-        startService(intent);
     }
 
     

@@ -23,6 +23,7 @@
     <string name="new_task">New Task</string>
     <string name="edit_list">Edit List</string>
     <string name="edit">Edit</string>
+    <string name="edit_task">Edit task</string>
     <string name="delete">Delete</string>
     <string name="delete_task">Delete task</string>
     <string name="discard">Discard</string>
@@ -47,6 +48,7 @@
     <string name="move_task">Move task to another day</string>
     <string name="welcome">Welcome</string>
     <string name="reorder_task">Reorder task</string>
+    <string name="recommending">Recommending&#8230;</string>
 
     <!-- Messages/Alerts -->
     <string name="set_location_message">You must choose a location for your task.</string>

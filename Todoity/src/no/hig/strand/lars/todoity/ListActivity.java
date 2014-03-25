@@ -330,9 +330,13 @@ public class ListActivity extends FragmentActivity {
 					LinearLayout layout = (LinearLayout) v.getParent();
 					ListView listView = (ListView) layout.getParent();
 					int position = (Integer) layout.getTag();
-					
+					Task task = mTasks.get(position);
 					mTasks.remove(position);
 					listView.setAdapter(new TaskListAdapter(context, mTasks));
+					new DatabaseUtilities.DeleteTask(
+							ListActivity.this, task, null).execute();
+					new AppEngineUtilities.RemoveTask(
+							ListActivity.this, task).execute();
 				}
 			});	
 			

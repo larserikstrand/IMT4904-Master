@@ -1,9 +1,0 @@
-package no.hig.strand.lars.todoity.adapters;
-
-import no.hig.strand.lars.todoity.Task;
-import android.widget.ArrayAdapter;
-
-
-public class TodayArrayAdapter extends ArrayAdapter<Task> {
-
-}

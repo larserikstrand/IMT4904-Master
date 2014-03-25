@@ -14,6 +14,7 @@ import no.hig.strand.lars.todoity.utils.DatabaseUtilities.MoveTaskToDate;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnDeletionCallback;
 import no.hig.strand.lars.todoity.utils.DatabaseUtilities.OnTaskMovedCallback;
 import no.hig.strand.lars.todoity.utils.Utilities;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +40,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 
@@ -48,6 +50,8 @@ public class TodayFragment extends Fragment {
 	private ArrayList<Task> mTasks;
 	private TodayListAdapter mAdapter;
 	private int mSelectedTask;
+	
+	public ProgressBar mProgress;
 	
 	// The minimum number of seconds before a task is considered as
 	//  actually started.
@@ -64,6 +68,8 @@ public class TodayFragment extends Fragment {
 		
 		setupUI();
 		new LoadTasksFromDatabase().execute();
+		
+		mProgress = (ProgressBar) rootView.findViewById(R.id.progressBar);
 		
 		return rootView;
 	}
@@ -84,6 +90,7 @@ public class TodayFragment extends Fragment {
 		super.setUserVisibleHint(isVisibleToUser);
 		if (isVisibleToUser) {
 			new LoadTasksFromDatabase().execute();
+			recommend();
 		}
 	}
 
@@ -123,8 +130,15 @@ public class TodayFragment extends Fragment {
 					listView.setTaskList(mTasks);
 					listView.setAdapter(mAdapter);
 					((MainActivity)getActivity()).updateGeofences();
+					recommend();
 				}
 			}).execute();
+			return true;
+		case R.id.edit_task:
+			Intent intent = new Intent(getActivity(), NewTaskActivity.class);
+			intent.putExtra(NewTaskActivity.TASK_EXTRA, 
+					mTasks.get(mSelectedTask));
+			startActivityForResult(intent, MainActivity.EDIT_TASK_REQUEST);
 			return true;
 		}
 		return super.onContextItemSelected(item);
@@ -176,8 +190,8 @@ public class TodayFragment extends Fragment {
 							@Override
 							public void onDeletionDone() {
 								mTasks.clear();
-								ListView listView = (ListView) mRootView
-										.findViewById(R.id.tasks_list);
+								DraggableListView listView = (DraggableListView)
+										mRootView.findViewById(R.id.tasks_list);
 								listView.setAdapter(new TodayListAdapter(
 										getActivity(), mTasks));
 								Button edit = (Button) mRootView
@@ -212,6 +226,8 @@ public class TodayFragment extends Fragment {
 			MainActivity activity = (MainActivity) getActivity();
 			activity.startTask();
 		}
+		
+		recommend();
 	}
 	
 	
@@ -245,6 +261,14 @@ public class TodayFragment extends Fragment {
 			MainActivity activity = (MainActivity) getActivity();
 			activity.pauseTask();
 		}
+		
+		recommend();
+	}
+	
+	
+	
+	public void recommend() {
+        new Recommender.RecommendTask(this).execute();
 	}
 	
 	
@@ -264,6 +288,7 @@ public class TodayFragment extends Fragment {
 							.findViewById(R.id.tasks_list);
 					listView.setAdapter(mAdapter);
 					((MainActivity)getActivity()).updateGeofences();
+					recommend();
 				}
 			}).execute();
 			new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
@@ -272,7 +297,28 @@ public class TodayFragment extends Fragment {
 	
 	
 	
-	private class LoadTasksFromDatabase extends AsyncTask<Void, Void, Void> {
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == MainActivity.EDIT_TASK_REQUEST) {
+			if (resultCode == Activity.RESULT_OK) {
+				Task task = data.getParcelableExtra(NewTaskActivity.TASK_EXTRA);
+				
+				mTasks.set(mSelectedTask, task);
+				new DatabaseUtilities.UpdateTask(getActivity(), task).execute();
+				new AppEngineUtilities.UpdateTask(getActivity(), task).execute();
+				
+				mAdapter = new TodayListAdapter(MainActivity.mContext, mTasks);
+				DraggableListView listView = (DraggableListView) mRootView
+						.findViewById(R.id.tasks_list);
+				listView.setAdapter(mAdapter);
+			}
+		}
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+
+
+	public class LoadTasksFromDatabase extends AsyncTask<Void, Void, Void> {
 		
 		@Override
 		protected Void doInBackground(Void... params) {
@@ -438,6 +484,7 @@ public class TodayFragment extends Fragment {
 								& (~Paint.STRIKE_THRU_TEXT_FLAG));
 						button.setEnabled(true);
 						((MainActivity)getActivity()).updateGeofences();
+						recommend();
 					}
 				}
 			});

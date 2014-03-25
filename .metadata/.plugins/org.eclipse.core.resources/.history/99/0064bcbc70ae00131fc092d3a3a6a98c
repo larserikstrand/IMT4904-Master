@@ -1,7 +1,0 @@
-package no.hig.strand.lars.todoity;
-
-import android.widget.ArrayAdapter;
-
-public class StableArrayAdapter extends ArrayAdapter<Task> {
-	
-}

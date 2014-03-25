@@ -45,7 +45,8 @@ public class TasksDbHelper extends SQLiteOpenHelper {
 			ContextEntry._ID + INTEGER_TYPE + " PRIMARY KEY" + COMMA_SEP +
 			ContextEntry.COLUMN_NAME_TASK + INTEGER_TYPE + COMMA_SEP +
 			ContextEntry.COLUMN_NAME_TYPE + TEXT_TYPE + COMMA_SEP +
-			ContextEntry.COLUMN_NAME_CONTEXT + TEXT_TYPE + ")";
+			ContextEntry.COLUMN_NAME_CONTEXT + TEXT_TYPE + COMMA_SEP +
+			ContextEntry.COLUMN_NAME_DETAILS + TEXT_TYPE + ")";
 	private static final String SQL_DELETE_CONTEXT =
 			"DROP TABLE IF EXISTS " + ContextEntry.TABLE_NAME;
 	

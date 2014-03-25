@@ -4,6 +4,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
+    <ProgressBar android:id="@+id/progressBar"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       style="?android:attr/progressBarStyleHorizontal" />
+    
     <no.hig.strand.lars.todoity.DraggableListView 
         android:id="@+id/tasks_list"
         android:layout_width="match_parent"
